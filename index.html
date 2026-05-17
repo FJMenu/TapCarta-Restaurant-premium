@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.7';
+        const APP_VERSION = 'V1.3.2.8';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10333,6 +10333,8 @@ function renderRequestRow(item, displayMode = 'active') {
   function ensureRestaurantHoursDraft() {
     if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return null;
 
+    const clone = (value) => JSON.parse(JSON.stringify(value));
+
     const defaultGeneralHours = {
       monday: { open: false, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
       tuesday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
@@ -10343,16 +10345,61 @@ function renderRequestRow(item, displayMode = 'active') {
       sunday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] }
     };
 
+    function normalizeDays(target) {
+      if (!target || typeof target !== 'object') {
+        target = clone(defaultGeneralHours);
+      }
+
+      Object.keys(defaultGeneralHours).forEach((dayKey) => {
+        const day = target[dayKey];
+
+        if (!day || typeof day !== 'object') {
+          target[dayKey] = clone(defaultGeneralHours[dayKey]);
+          return;
+        }
+
+        if (!Array.isArray(day.slots)) {
+          day.slots = [
+            {
+              from: day.from || defaultGeneralHours[dayKey].slots[0].from,
+              to: day.to || defaultGeneralHours[dayKey].slots[0].to
+            },
+            { from: '', to: '' }
+          ];
+        }
+
+        while (day.slots.length < 2) {
+          day.slots.push({ from: '', to: '' });
+        }
+
+        day.slots = day.slots.slice(0, 2).map((slot, index) => ({
+          from: typeof slot?.from === 'string' ? slot.from : defaultGeneralHours[dayKey].slots[index]?.from || '',
+          to: typeof slot?.to === 'string' ? slot.to : defaultGeneralHours[dayKey].slots[index]?.to || ''
+        }));
+
+        if (typeof day.open !== 'boolean') {
+          day.open = defaultGeneralHours[dayKey].open;
+        }
+
+        delete day.from;
+        delete day.to;
+      });
+
+      return target;
+    }
+
     if (!activeRestaurantData.restaurantHoursDraft || typeof activeRestaurantData.restaurantHoursDraft !== 'object') {
       activeRestaurantData.restaurantHoursDraft = {
-        general: structuredClone(defaultGeneralHours),
+        general: clone(defaultGeneralHours),
         booking: {
           mode: 'general',
+          specific: clone(defaultGeneralHours),
           delayMode: 'auto',
           customDelayMinutes: 30
         },
         ordering: {
           mode: 'general',
+          specific: clone(defaultGeneralHours),
           delayMode: 'auto',
           customDelayMinutes: 30
         }
@@ -10361,41 +10408,7 @@ function renderRequestRow(item, displayMode = 'active') {
 
     const draft = activeRestaurantData.restaurantHoursDraft;
 
-    if (!draft.general || typeof draft.general !== 'object') {
-      draft.general = structuredClone(defaultGeneralHours);
-    }
-
-    Object.keys(defaultGeneralHours).forEach((dayKey) => {
-      const day = draft.general[dayKey];
-
-      if (!day || typeof day !== 'object') {
-        draft.general[dayKey] = structuredClone(defaultGeneralHours[dayKey]);
-        return;
-      }
-
-      if (!Array.isArray(day.slots)) {
-        day.slots = [
-          { from: day.from || defaultGeneralHours[dayKey].slots[0].from, to: day.to || defaultGeneralHours[dayKey].slots[0].to },
-          { from: '', to: '' }
-        ];
-      }
-
-      while (day.slots.length < 2) {
-        day.slots.push({ from: '', to: '' });
-      }
-
-      day.slots = day.slots.slice(0, 2).map((slot, index) => ({
-        from: typeof slot?.from === 'string' ? slot.from : defaultGeneralHours[dayKey].slots[index]?.from || '',
-        to: typeof slot?.to === 'string' ? slot.to : defaultGeneralHours[dayKey].slots[index]?.to || ''
-      }));
-
-      if (typeof day.open !== 'boolean') {
-        day.open = defaultGeneralHours[dayKey].open;
-      }
-
-      delete day.from;
-      delete day.to;
-    });
+    draft.general = normalizeDays(draft.general);
 
     ['booking', 'ordering'].forEach((moduleKey) => {
       if (!draft[moduleKey] || typeof draft[moduleKey] !== 'object') {
@@ -10405,6 +10418,8 @@ function renderRequestRow(item, displayMode = 'active') {
       if (!['general', 'specific'].includes(draft[moduleKey].mode)) {
         draft[moduleKey].mode = 'general';
       }
+
+      draft[moduleKey].specific = normalizeDays(draft[moduleKey].specific);
 
       if (!['auto', 'none', 'custom'].includes(draft[moduleKey].delayMode)) {
         draft[moduleKey].delayMode = 'auto';
@@ -10430,7 +10445,7 @@ function renderRequestRow(item, displayMode = 'active') {
     };
   }
 
-  function buildRestaurantHoursRows(hours) {
+  function buildRestaurantHoursRows(daysSource, fieldPrefix = 'general') {
     const labels = getRestaurantDayLabels();
     const text = getRestaurantHoursText();
 
@@ -10453,7 +10468,7 @@ function renderRequestRow(item, displayMode = 'active') {
             : 'optionnel';
 
     return Object.entries(labels).map(([dayKey, label]) => {
-      const day = hours.general[dayKey];
+      const day = daysSource[dayKey];
       const slot1 = day.slots?.[0] || { from: '', to: '' };
       const slot2 = day.slots?.[1] || { from: '', to: '' };
 
@@ -10463,7 +10478,7 @@ function renderRequestRow(item, displayMode = 'active') {
             <div class="font-bold text-cream">${label}</div>
 
             <label class="inline-flex items-center gap-2 text-sm font-semibold text-cream/85">
-              <input type="checkbox" data-hours-open="${dayKey}" ${day.open ? 'checked' : ''} class="accent-gold">
+              <input type="checkbox" data-hours-open="${fieldPrefix}-${dayKey}" ${day.open ? 'checked' : ''} class="accent-gold">
               <span>${day.open ? text.open : text.closed}</span>
             </label>
           </div>
@@ -10474,14 +10489,14 @@ function renderRequestRow(item, displayMode = 'active') {
 
               <input
                 type="time"
-                data-hours-slot-from="${dayKey}-0"
+                data-hours-slot-from="${fieldPrefix}-${dayKey}-0"
                 value="${slot1.from}"
                 class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
               >
 
               <input
                 type="time"
-                data-hours-slot-to="${dayKey}-0"
+                data-hours-slot-to="${fieldPrefix}-${dayKey}-0"
                 value="${slot1.to}"
                 class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
               >
@@ -10490,19 +10505,19 @@ function renderRequestRow(item, displayMode = 'active') {
             <div class="grid md:grid-cols-[100px_1fr_1fr] gap-3 items-center">
               <div>
                 <div class="text-xs font-bold uppercase tracking-[0.12em] text-gold/80">${service2Label}</div>
-                <div class="text-[0.72rem] font-semibold text-gold/70">${optionalLabel}</div>
+                <div class="text-[0.72rem] font-semibold text-cream/65">${optionalLabel}</div>
               </div>
 
               <input
                 type="time"
-                data-hours-slot-from="${dayKey}-1"
+                data-hours-slot-from="${fieldPrefix}-${dayKey}-1"
                 value="${slot2.from}"
                 class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
               >
 
               <input
                 type="time"
-                data-hours-slot-to="${dayKey}-1"
+                data-hours-slot-to="${fieldPrefix}-${dayKey}-1"
                 value="${slot2.to}"
                 class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
               >
@@ -10513,9 +10528,18 @@ function renderRequestRow(item, displayMode = 'active') {
     }).join('');
   }
 
-  function buildRestaurantModuleHoursCard(moduleKey, icon, title, hours) {
+   function buildRestaurantModuleHoursCard(moduleKey, icon, title, hours) {
     const text = getRestaurantHoursText();
     const moduleData = hours[moduleKey];
+
+    const specificExplanation =
+      currentLang === 'es'
+        ? 'Defina horarios diferentes solo para este servicio.'
+        : currentLang === 'en'
+          ? 'Set different hours only for this service.'
+          : currentLang === 'nl'
+            ? 'Stel aparte uren in voor alleen deze dienst.'
+            : 'Définissez des horaires différents uniquement pour ce service.';
 
     return `
       <div class="rounded-[24px] border border-gold/20 bg-black/20 p-5">
@@ -10539,6 +10563,16 @@ function renderRequestRow(item, displayMode = 'active') {
             <input type="radio" name="${moduleKey}-mode" value="specific" ${moduleData.mode === 'specific' ? 'checked' : ''}>
             <span>${text.specific}</span>
           </label>
+        </div>
+
+        <div
+          data-specific-hours-panel="${moduleKey}"
+          class="${moduleData.mode === 'specific' ? '' : 'hidden'} rounded-[20px] border border-gold/18 bg-gold/[0.045] p-4 mb-4"
+        >
+          <div class="text-sm font-semibold text-cream/72 mb-3">${specificExplanation}</div>
+          <div class="grid gap-3">
+            ${buildRestaurantHoursRows(moduleData.specific, `${moduleKey}-specific`)}
+          </div>
         </div>
 
         <div class="grid gap-2">
@@ -10566,30 +10600,39 @@ function renderRequestRow(item, displayMode = 'active') {
       </div>
     `;
   }
-
-  function saveRestaurantHoursDraft() {
-    const hours = ensureRestaurantHoursDraft();
-    if (!hours) return;
+  function readHoursRowsFromDom(fieldPrefix) {
+    const result = {};
 
     Object.keys(getRestaurantDayLabels()).forEach((dayKey) => {
-      hours.general[dayKey] = {
-        open: Boolean(document.querySelector(`[data-hours-open="${dayKey}"]`)?.checked),
+      result[dayKey] = {
+        open: Boolean(document.querySelector(`[data-hours-open="${fieldPrefix}-${dayKey}"]`)?.checked),
         slots: [
           {
-            from: document.querySelector(`[data-hours-slot-from="${dayKey}-0"]`)?.value || '',
-            to: document.querySelector(`[data-hours-slot-to="${dayKey}-0"]`)?.value || ''
+            from: document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${dayKey}-0"]`)?.value || '',
+            to: document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${dayKey}-0"]`)?.value || ''
           },
           {
-            from: document.querySelector(`[data-hours-slot-from="${dayKey}-1"]`)?.value || '',
-            to: document.querySelector(`[data-hours-slot-to="${dayKey}-1"]`)?.value || ''
+            from: document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${dayKey}-1"]`)?.value || '',
+            to: document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${dayKey}-1"]`)?.value || ''
           }
         ]
       };
     });
 
+    return result;
+  }
+
+  function saveRestaurantHoursDraft() {
+    const hours = ensureRestaurantHoursDraft();
+    if (!hours) return;
+
+    hours.general = readHoursRowsFromDom('general');
+
     ['booking', 'ordering'].forEach((moduleKey) => {
       hours[moduleKey] = {
+        ...hours[moduleKey],
         mode: document.querySelector(`input[name="${moduleKey}-mode"]:checked`)?.value || 'general',
+        specific: readHoursRowsFromDom(`${moduleKey}-specific`),
         delayMode: document.querySelector(`input[name="${moduleKey}-delay"]:checked`)?.value || 'auto',
         customDelayMinutes: Number(document.querySelector(`[data-custom-delay="${moduleKey}"]`)?.value || 30)
       };
@@ -10706,7 +10749,7 @@ function renderRequestRow(item, displayMode = 'active') {
             <div class="rounded-[24px] border border-gold/28 bg-white/[0.035] p-5">
               <div class="font-display text-xl font-bold text-cream mb-4">${text.general}</div>
               <div class="grid gap-3">
-                ${buildRestaurantHoursRows(hours)}
+                ${buildRestaurantHoursRows(hours.general, 'general')}
               </div>
             </div>
 
@@ -10745,6 +10788,23 @@ function renderRequestRow(item, displayMode = 'active') {
       input.addEventListener('change', () => {
         const label = input.closest('label')?.querySelector('span');
         if (label) label.textContent = input.checked ? text.open : text.closed;
+      });
+    });
+
+    ['booking', 'ordering'].forEach((moduleKey) => {
+      document.querySelectorAll(`input[name="${moduleKey}-mode"]`).forEach((input) => {
+        input.addEventListener('change', () => {
+          const panel = document.querySelector(`[data-specific-hours-panel="${moduleKey}"]`);
+          if (!panel) return;
+
+          if (input.value === 'specific' && input.checked) {
+            panel.classList.remove('hidden');
+          }
+
+          if (input.value === 'general' && input.checked) {
+            panel.classList.add('hidden');
+          }
+        });
       });
     });
 
