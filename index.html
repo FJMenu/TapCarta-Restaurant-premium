@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-            const APP_VERSION = 'V1.2.16.23';
+            const APP_VERSION = 'V1.3.1.1';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -1671,11 +1671,13 @@ restaurantGoogleRefreshInfo: 'Auto-refresh 3 h',
 restaurantGoogleReviewsCount: '{count} avis Google',
 restaurantGoogleViewReviews: 'Voir les avis',
 restaurantGoogleRefreshButton: 'Actualiser',
-restaurantMenuCardTitle: 'Consulter mon menu',
-restaurantMenuCardSubtitle: 'Accès rapide à l’expérience client',
+restaurantMenuCardTitle: 'Mon espace restaurant',
+restaurantMenuCardSubtitle: 'Menu, expérience client et informations',
 restaurantMenuView: 'Voir mon menu',
 restaurantMenuQr: 'Voir le QR',
 restaurantMenuTest: 'Tester l’expérience client',
+restaurantManageInfo: 'Gérer mes informations',
+restaurantManageInfoSoon: 'La gestion des informations sera ajoutée à l’étape horaires.',
 restaurantInfoTitle: 'Infos établissement',
 restaurantInfoSubtitle: 'Vue synthétique',
 restaurantInfoBusiness: 'Établissement',
@@ -1877,11 +1879,13 @@ restaurantGoogleRefreshInfo: 'Auto-refresh 3 h',
 restaurantGoogleReviewsCount: '{count} reseñas de Google',
 restaurantGoogleViewReviews: 'Ver las reseñas',
 restaurantGoogleRefreshButton: 'Actualizar',
-restaurantMenuCardTitle: 'Consultar mi menú',
-restaurantMenuCardSubtitle: 'Acceso rápido a la experiencia cliente',
+restaurantMenuCardTitle: 'Mi espacio restaurante',
+restaurantMenuCardSubtitle: 'Menú, experiencia cliente e información',
 restaurantMenuView: 'Ver mi menú',
 restaurantMenuQr: 'Ver el QR',
 restaurantMenuTest: 'Probar la experiencia cliente',
+restaurantManageInfo: 'Gestionar mi información',
+restaurantManageInfoSoon: 'La gestión de la información se añadirá en la etapa de horarios.',
 restaurantInfoTitle: 'Información del establecimiento',
 restaurantInfoSubtitle: 'Vista resumida',
 restaurantInfoBusiness: 'Establecimiento',
@@ -2084,11 +2088,13 @@ restaurantGoogleRefreshInfo: 'Auto-refresh 3 h',
 restaurantGoogleReviewsCount: '{count} Google reviews',
 restaurantGoogleViewReviews: 'View reviews',
 restaurantGoogleRefreshButton: 'Refresh',
-restaurantMenuCardTitle: 'View my menu',
-restaurantMenuCardSubtitle: 'Quick access to the customer experience',
+restaurantMenuCardTitle: 'My restaurant space',
+restaurantMenuCardSubtitle: 'Menu, customer experience and information',
 restaurantMenuView: 'View my menu',
 restaurantMenuQr: 'View the QR',
 restaurantMenuTest: 'Test the customer experience',
+restaurantManageInfo: 'Manage my information',
+restaurantManageInfoSoon: 'Information management will be added in the opening hours step.',
 restaurantInfoTitle: 'Business info',
 restaurantInfoSubtitle: 'Summary view',
 restaurantInfoBusiness: 'Business',
@@ -2291,11 +2297,13 @@ restaurantGoogleRefreshInfo: 'Auto-refresh 3 h',
 restaurantGoogleReviewsCount: '{count} Google-reviews',
 restaurantGoogleViewReviews: 'Reviews bekijken',
 restaurantGoogleRefreshButton: 'Vernieuwen',
-restaurantMenuCardTitle: 'Mijn menu bekijken',
-restaurantMenuCardSubtitle: 'Snelle toegang tot de klantervaring',
+restaurantMenuCardTitle: 'Mijn restaurantomgeving',
+restaurantMenuCardSubtitle: 'Menu, klantervaring en gegevens',
 restaurantMenuView: 'Mijn menu bekijken',
 restaurantMenuQr: 'De QR bekijken',
 restaurantMenuTest: 'De klantervaring testen',
+restaurantManageInfo: 'Mijn gegevens beheren',
+restaurantManageInfoSoon: 'Het beheer van gegevens wordt toegevoegd bij de stap openingsuren.',
 restaurantInfoTitle: 'Zaakgegevens',
 restaurantInfoSubtitle: 'Samenvattend overzicht',
 restaurantInfoBusiness: 'Zaak',
@@ -9323,6 +9331,15 @@ function renderRequestRow(item, displayMode = 'active') {
                       ? 'Menu beheren'
                       : 'Gérer le menu'}</span>
               </button>
+
+              <button
+                id="restaurant-info-editor-toggle"
+                type="button"
+                class="btn-action w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gold/25 text-sm font-semibold text-gold hover:bg-gold/10 transition-all"
+              >
+                <i data-lucide="settings" class="w-4 h-4 text-gold"></i>
+                <span>${t.restaurantManageInfo}</span>
+              </button>
             </div>
           </article>
 
@@ -11069,6 +11086,7 @@ async function exportRestaurantJson() {
 }
 
   const editorToggleBtn = document.getElementById('restaurant-menu-editor-toggle');
+  const infoEditorToggleBtn = document.getElementById('restaurant-info-editor-toggle');
   const editorSection = document.getElementById('restaurant-menu-editor-section');
   const editorHome = document.getElementById('restaurant-menu-editor-home');
   const editorWorkspace = document.getElementById('restaurant-menu-editor-workspace');
@@ -11170,6 +11188,12 @@ const unsavedBannerSaveBtn = document.getElementById('restaurant-menu-unsaved-sa
     syncMenuEditorUiState();
     showMenuEditorHome();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  if (infoEditorToggleBtn) {
+    infoEditorToggleBtn.addEventListener('click', () => {
+      showRestaurantToast(t.restaurantManageInfoSoon || 'Section bientôt disponible.');
+    });
   }
 
   if (editorToggleBtn && editorSection) {
