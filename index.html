@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.8';
+        const APP_VERSION = 'V1.3.2.9';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10325,7 +10325,6 @@ function renderRequestRow(item, displayMode = 'active') {
       specific: currentLang === 'es' ? 'Horarios específicos' : currentLang === 'en' ? 'Specific hours' : currentLang === 'nl' ? 'Specifieke uren' : 'Horaires spécifiques',
       delay: currentLang === 'es' ? 'Plazo mínimo' : currentLang === 'en' ? 'Minimum delay' : currentLang === 'nl' ? 'Minimale wachttijd' : 'Délai minimum',
       autoDelay: currentLang === 'es' ? 'Automático recomendado — 30 min' : currentLang === 'en' ? 'Recommended automatic — 30 min' : currentLang === 'nl' ? 'Aanbevolen automatisch — 30 min' : 'Automatique recommandé — 30 min',
-      noDelay: currentLang === 'es' ? 'Sin plazo mínimo' : currentLang === 'en' ? 'No minimum delay' : currentLang === 'nl' ? 'Geen minimale wachttijd' : 'Aucun délai minimum',
       customDelay: currentLang === 'es' ? 'Definir yo mismo' : currentLang === 'en' ? 'Set myself' : currentLang === 'nl' ? 'Zelf instellen' : 'Définir moi-même'
     };
   }
@@ -10421,12 +10420,12 @@ function renderRequestRow(item, displayMode = 'active') {
 
       draft[moduleKey].specific = normalizeDays(draft[moduleKey].specific);
 
-      if (!['auto', 'none', 'custom'].includes(draft[moduleKey].delayMode)) {
+      if (!['auto', 'custom'].includes(draft[moduleKey].delayMode)) {
         draft[moduleKey].delayMode = 'auto';
       }
 
-      if (![15, 30, 45, 60].includes(Number(draft[moduleKey].customDelayMinutes))) {
-        draft[moduleKey].customDelayMinutes = 30;
+      if (![0, 15, 45, 60].includes(Number(draft[moduleKey].customDelayMinutes))) {
+        draft[moduleKey].customDelayMinutes = 15;
       }
     });
 
