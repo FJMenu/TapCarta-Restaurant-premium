@@ -10752,29 +10752,46 @@ function renderRequestRow(item, displayMode = 'active') {
 
         <div class="restaurant-options-body">
           <div class="grid gap-4">
-            <div class="rounded-[22px] border border-gold/24 bg-gold/[0.06] px-4 py-4">
+            <div class="rounded-[22px] border border-gold/40 bg-[#1A1208] px-4 py-4 shadow-[0_12px_34px_rgba(0,0,0,0.28)]">
               <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-gold/12 border border-gold/25 flex items-center justify-center shrink-0">
-                  <i data-lucide="info" class="w-5 h-5 text-gold"></i>
+                <div class="w-10 h-10 rounded-2xl bg-gold/18 border border-gold/40 flex items-center justify-center shrink-0">
+                  <i data-lucide="map" class="w-5 h-5 text-gold"></i>
                 </div>
+
                 <div class="min-w-0">
                   <div class="font-bold text-cream">
                     ${currentLang === 'es'
-                      ? 'Está en el lugar correcto'
+                      ? 'Aquí puede ajustar todos los horarios'
                       : currentLang === 'en'
-                        ? 'You are in the right place'
+                        ? 'You can adjust all hours here'
                         : currentLang === 'nl'
-                          ? 'U bent op de juiste plaats'
-                          : 'Vous êtes au bon endroit'}
+                          ? 'Hier kunt u alle uren aanpassen'
+                          : 'Vous pouvez régler tous les horaires ici'}
                   </div>
-                  <div class="text-sm text-cream/68 mt-1 leading-relaxed">
+
+                  <div class="text-sm text-cream/85 mt-1 leading-relaxed">
                     ${currentLang === 'es'
-                      ? 'Configure aquí los horarios generales. Más abajo puede definir horarios específicos para reservas, para llevar y los plazos mínimos antes de una solicitud.'
+                      ? 'Primero los horarios generales. Más abajo: reservas, para llevar y plazos mínimos.'
                       : currentLang === 'en'
-                        ? 'Configure the general hours here. Further down, you can set specific hours for bookings, takeaway and minimum delays before a request.'
+                        ? 'First the general hours. Further down: bookings, takeaway and minimum delays.'
                         : currentLang === 'nl'
-                          ? 'Configureer hier de algemene uren. Verderop kunt u specifieke uren instellen voor reservaties, afhalen en minimale wachttijden vóór een aanvraag.'
-                          : 'Configurez ici les horaires généraux. Plus bas, vous pouvez définir des horaires spécifiques pour les réservations, l’à emporter et les délais minimums avant une demande.'}
+                          ? 'Eerst de algemene uren. Verder naar beneden: reservaties, afhalen en minimale wachttijden.'
+                          : 'D’abord les horaires généraux. Plus bas : réservations, à emporter et délais minimums.'}
+                  </div>
+
+                  <div class="flex flex-wrap gap-2 mt-3">
+                    <span class="rounded-full border border-gold/35 bg-gold/12 px-3 py-1 text-xs font-bold text-gold">
+                      ${currentLang === 'es' ? 'Generales' : currentLang === 'en' ? 'General' : currentLang === 'nl' ? 'Algemeen' : 'Généraux'}
+                    </span>
+                    <span class="rounded-full border border-gold/35 bg-gold/12 px-3 py-1 text-xs font-bold text-gold">
+                      ${currentLang === 'es' ? 'Reservas' : currentLang === 'en' ? 'Bookings' : currentLang === 'nl' ? 'Reservaties' : 'Réservations'}
+                    </span>
+                    <span class="rounded-full border border-gold/35 bg-gold/12 px-3 py-1 text-xs font-bold text-gold">
+                      ${currentLang === 'es' ? 'Para llevar' : currentLang === 'en' ? 'Takeaway' : currentLang === 'nl' ? 'Afhalen' : 'À emporter'}
+                    </span>
+                    <span class="rounded-full border border-gold/35 bg-gold/12 px-3 py-1 text-xs font-bold text-gold">
+                      ${currentLang === 'es' ? 'Plazos' : currentLang === 'en' ? 'Delays' : currentLang === 'nl' ? 'Wachttijden' : 'Délais'}
+                    </span>
                   </div>
                 </div>
               </div>
