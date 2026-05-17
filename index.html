@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.10';
+        const APP_VERSION = 'V1.3.2.11';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10752,6 +10752,34 @@ function renderRequestRow(item, displayMode = 'active') {
 
         <div class="restaurant-options-body">
           <div class="grid gap-4">
+            <div class="rounded-[22px] border border-gold/24 bg-gold/[0.06] px-4 py-4">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gold/12 border border-gold/25 flex items-center justify-center shrink-0">
+                  <i data-lucide="info" class="w-5 h-5 text-gold"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-cream">
+                    ${currentLang === 'es'
+                      ? 'Está en el lugar correcto'
+                      : currentLang === 'en'
+                        ? 'You are in the right place'
+                        : currentLang === 'nl'
+                          ? 'U bent op de juiste plaats'
+                          : 'Vous êtes au bon endroit'}
+                  </div>
+                  <div class="text-sm text-cream/68 mt-1 leading-relaxed">
+                    ${currentLang === 'es'
+                      ? 'Configure aquí los horarios generales. Más abajo puede definir horarios específicos para reservas, para llevar y los plazos mínimos antes de una solicitud.'
+                      : currentLang === 'en'
+                        ? 'Configure the general hours here. Further down, you can set specific hours for bookings, takeaway and minimum delays before a request.'
+                        : currentLang === 'nl'
+                          ? 'Configureer hier de algemene uren. Verderop kunt u specifieke uren instellen voor reservaties, afhalen en minimale wachttijden vóór een aanvraag.'
+                          : 'Configurez ici les horaires généraux. Plus bas, vous pouvez définir des horaires spécifiques pour les réservations, l’à emporter et les délais minimums avant une demande.'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="rounded-[24px] border border-gold/28 bg-white/[0.035] p-5">
               <div class="font-display text-xl font-bold text-cream mb-4">${text.general}</div>
               <div class="grid gap-3">
