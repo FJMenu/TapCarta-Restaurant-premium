@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-            const APP_VERSION = 'V1.3.2.1';
+            const APP_VERSION = 'V1.3.2.2';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -9673,6 +9673,187 @@ function renderRequestRow(item, displayMode = 'active') {
             </button>
           </div>
         </section>
+
+        <section id="restaurant-options-section" class="hidden mt-8">
+          <article class="rounded-[28px] border-2 border-gold/45 bg-gradient-to-br from-gold/[0.12] via-amber-950/25 to-black shadow-[0_28px_80px_rgba(245,158,11,0.14)] p-5 md:p-7">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+              <div>
+                <h3 class="inline-flex items-center gap-3 rounded-2xl border border-gold/35 bg-gold/12 px-4 py-3 font-display text-2xl md:text-3xl font-bold text-cream">
+                  <i data-lucide="sliders-horizontal" class="w-6 h-6 text-gold"></i>
+                  <span>${currentLang === 'es'
+                    ? 'Mis opciones TapCarta'
+                    : currentLang === 'en'
+                      ? 'My TapCarta options'
+                      : currentLang === 'nl'
+                        ? 'Mijn TapCarta-opties'
+                        : 'Mes options TapCarta'}</span>
+                </h3>
+
+                <p class="text-sm md:text-base text-cream/65 mt-3 max-w-3xl">
+                  ${currentLang === 'es'
+                    ? 'Gestione aquí las funciones visibles para sus clientes. Los cambios solo se aplican después de guardar.'
+                    : currentLang === 'en'
+                      ? 'Manage here the features visible to your customers. Changes are only applied after saving.'
+                      : currentLang === 'nl'
+                        ? 'Beheer hier de functies die zichtbaar zijn voor uw klanten. Wijzigingen worden pas toegepast na het opslaan.'
+                        : 'Gérez ici les fonctions visibles côté client. Les changements ne s’appliquent qu’après enregistrement.'}
+                </p>
+              </div>
+
+              <button
+                id="restaurant-options-back-btn"
+                type="button"
+                class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/15 text-sm font-semibold text-cream hover:bg-white/5 transition-all"
+              >
+                <i data-lucide="arrow-left" class="w-4 h-4 text-cream"></i>
+                <span>${currentLang === 'es'
+                  ? 'Volver'
+                  : currentLang === 'en'
+                    ? 'Back'
+                    : currentLang === 'nl'
+                      ? 'Terug'
+                      : 'Retour'}</span>
+              </button>
+            </div>
+
+            <div class="grid gap-5">
+              <div class="rounded-[24px] border border-gold/22 bg-black/20 p-4 md:p-5">
+                <div class="flex items-start gap-3 mb-4">
+                  <div class="w-10 h-10 rounded-2xl bg-gold/12 border border-gold/25 flex items-center justify-center shrink-0">
+                    <i data-lucide="calendar-check" class="w-5 h-5 text-gold"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-display text-xl font-bold text-cream">
+                      ${currentLang === 'es' ? 'Reservas' : currentLang === 'en' ? 'Bookings' : currentLang === 'nl' ? 'Reservaties' : 'Réservations'}
+                    </h4>
+                    <p class="text-sm text-cream/60 mt-1">
+                      ${currentLang === 'es' ? 'Permitir, pausar o esconder las reservas en el menú cliente.' : currentLang === 'en' ? 'Allow, pause or hide bookings in the customer menu.' : currentLang === 'nl' ? 'Reservaties toestaan, pauzeren of verbergen in het klantenmenu.' : 'Autoriser, mettre en veille ou masquer les réservations côté client.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-3">
+                  <label class="rounded-2xl border border-gold/25 bg-white/[0.03] px-4 py-3 cursor-pointer">
+                    <input type="radio" name="restaurant-option-booking" value="active" class="mr-2" ${getRestaurantOptionStatus('booking') === 'active' ? 'checked' : ''}>
+                    <span class="font-bold text-cream">${currentLang === 'es' ? 'Activado' : currentLang === 'en' ? 'Active' : currentLang === 'nl' ? 'Actief' : 'Activé'}</span>
+                  </label>
+
+                  <label class="rounded-2xl border border-gold/25 bg-white/[0.03] px-4 py-3 cursor-pointer">
+                    <input type="radio" name="restaurant-option-booking" value="standby" class="mr-2" ${getRestaurantOptionStatus('booking') === 'standby' ? 'checked' : ''}>
+                    <span class="font-bold text-cream">${currentLang === 'es' ? 'En espera' : currentLang === 'en' ? 'Standby' : currentLang === 'nl' ? 'In wachtstand' : 'En veille'}</span>
+                  </label>
+
+                  <label class="rounded-2xl border border-gold/25 bg-white/[0.03] px-4 py-3 cursor-pointer">
+                    <input type="radio" name="restaurant-option-booking" value="hidden" class="mr-2" ${getRestaurantOptionStatus('booking') === 'hidden' ? 'checked' : ''}>
+                    <span class="font-bold text-cream">${currentLang === 'es' ? 'No visible' : currentLang === 'en' ? 'Hidden' : currentLang === 'nl' ? 'Niet zichtbaar' : 'Non affiché'}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="rounded-[24px] border border-gold/22 bg-black/20 p-4 md:p-5">
+                <div class="flex items-start gap-3 mb-4">
+                  <div class="w-10 h-10 rounded-2xl bg-gold/12 border border-gold/25 flex items-center justify-center shrink-0">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-gold"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-display text-xl font-bold text-cream">
+                      ${currentLang === 'es' ? 'Para llevar' : currentLang === 'en' ? 'Takeaway' : currentLang === 'nl' ? 'Afhalen' : 'À emporter'}
+                    </h4>
+                    <p class="text-sm text-cream/60 mt-1">
+                      ${currentLang === 'es' ? 'Permitir, pausar o esconder las solicitudes para llevar.' : currentLang === 'en' ? 'Allow, pause or hide takeaway requests.' : currentLang === 'nl' ? 'Afhaalverzoeken toestaan, pauzeren of verbergen.' : 'Autoriser, mettre en veille ou masquer les demandes à emporter.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-3">
+                  <label class="rounded-2xl border border-gold/25 bg-white/[0.03] px-4 py-3 cursor-pointer">
+                    <input type="radio" name="restaurant-option-ordering" value="active" class="mr-2" ${getRestaurantOptionStatus('ordering') === 'active' ? 'checked' : ''}>
+                    <span class="font-bold text-cream">${currentLang === 'es' ? 'Activado' : currentLang === 'en' ? 'Active' : currentLang === 'nl' ? 'Actief' : 'Activé'}</span>
+                  </label>
+
+                  <label class="rounded-2xl border border-gold/25 bg-white/[0.03] px-4 py-3 cursor-pointer">
+                    <input type="radio" name="restaurant-option-ordering" value="standby" class="mr-2" ${getRestaurantOptionStatus('ordering') === 'standby' ? 'checked' : ''}>
+                    <span class="font-bold text-cream">${currentLang === 'es' ? 'En espera' : currentLang === 'en' ? 'Standby' : currentLang === 'nl' ? 'In wachtstand' : 'En veille'}</span>
+                  </label>
+
+                  <label class="rounded-2xl border border-gold/25 bg-white/[0.03] px-4 py-3 cursor-pointer">
+                    <input type="radio" name="restaurant-option-ordering" value="hidden" class="mr-2" ${getRestaurantOptionStatus('ordering') === 'hidden' ? 'checked' : ''}>
+                    <span class="font-bold text-cream">${currentLang === 'es' ? 'No visible' : currentLang === 'en' ? 'Hidden' : currentLang === 'nl' ? 'Niet zichtbaar' : 'Non affiché'}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="rounded-[24px] border border-gold/25 bg-gold/[0.08] px-4 py-4 text-sm text-cream/80 leading-relaxed">
+                <div class="font-bold text-gold mb-2">
+                  ${currentLang === 'es' ? '¿Para qué sirve el modo en espera?' : currentLang === 'en' ? 'What is standby mode for?' : currentLang === 'nl' ? 'Waarvoor dient de wachtstand?' : 'À quoi sert le mode en veille ?'}
+                </div>
+                <p>
+                  ${currentLang === 'es'
+                    ? 'Modo útil si ofrece este servicio en ciertos períodos, pero no ahora. La función sigue visible en su TapCarta, sin permitir nuevas solicitudes. Sus clientes entienden así que este servicio existe en su establecimiento y podrán volver a consultar su menú cuando esté abierto de nuevo. Si elige “No visible”, el servicio desaparece completamente del lado cliente.'
+                    : currentLang === 'en'
+                      ? 'Useful mode if you offer this service during certain periods, but not right now. The feature remains visible in your TapCarta without allowing new requests. Customers understand that this service exists and can come back to check your menu when it is open again. If you choose “Hidden”, the service disappears completely from the customer side.'
+                      : currentLang === 'nl'
+                        ? 'Handige modus als u deze dienst op bepaalde momenten aanbiedt, maar nu niet. De functie blijft zichtbaar in uw TapCarta, zonder nieuwe aanvragen toe te laten. Klanten begrijpen zo dat deze dienst bestaat en kunnen later opnieuw uw menu bekijken. Als u “Niet zichtbaar” kiest, verdwijnt de dienst volledig aan klantzijde.'
+                        : 'Mode utile si vous proposez ce service à certaines périodes, mais pas maintenant. La fonction reste visible dans votre TapCarta, sans permettre de nouvelles demandes. Vos clients comprennent ainsi que ce service existe chez vous et pourront revenir consulter votre menu lorsqu’il sera à nouveau ouvert. Si vous choisissez “Non affiché”, le service disparaît complètement côté client.'}
+                </p>
+              </div>
+
+              <div class="rounded-[24px] border border-gold/22 bg-black/20 p-4 md:p-5">
+                <h4 class="font-display text-xl font-bold text-cream mb-4">
+                  ${currentLang === 'es' ? 'Accesos rápidos visibles' : currentLang === 'en' ? 'Visible quick actions' : currentLang === 'nl' ? 'Zichtbare snelle acties' : 'Actions rapides visibles'}
+                </h4>
+
+                <div class="grid md:grid-cols-2 gap-3">
+                  ${[
+                    ['whatsapp', 'message-circle', currentLang === 'es' ? 'WhatsApp' : currentLang === 'en' ? 'WhatsApp' : currentLang === 'nl' ? 'WhatsApp' : 'WhatsApp'],
+                    ['phone', 'phone', currentLang === 'es' ? 'Llamada telefónica' : currentLang === 'en' ? 'Phone call' : currentLang === 'nl' ? 'Telefonisch bellen' : 'Appel téléphonique'],
+                    ['directions', 'map-pin', currentLang === 'es' ? 'Itinerario / dirección' : currentLang === 'en' ? 'Directions / address' : currentLang === 'nl' ? 'Route / adres' : 'Itinéraire / adresse'],
+                    ['googleReviews', 'star', currentLang === 'es' ? 'Reseñas Google' : currentLang === 'en' ? 'Google reviews' : currentLang === 'nl' ? 'Google-reviews' : 'Avis Google']
+                  ].map(([key, icon, label]) => `
+                    <div class="rounded-2xl border border-gold/18 bg-white/[0.03] px-4 py-4">
+                      <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="${icon}" class="w-4 h-4 text-gold"></i>
+                        <div class="font-bold text-cream">${label}</div>
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-2">
+                        <label class="rounded-xl border border-gold/20 bg-black/15 px-3 py-2 cursor-pointer text-sm">
+                          <input type="radio" name="restaurant-option-${key}" value="active" class="mr-2" ${getRestaurantOptionStatus(key) === 'active' ? 'checked' : ''}>
+                          <span>${currentLang === 'es' ? 'Activado' : currentLang === 'en' ? 'Active' : currentLang === 'nl' ? 'Actief' : 'Activé'}</span>
+                        </label>
+
+                        <label class="rounded-xl border border-gold/20 bg-black/15 px-3 py-2 cursor-pointer text-sm">
+                          <input type="radio" name="restaurant-option-${key}" value="hidden" class="mr-2" ${getRestaurantOptionStatus(key) === 'hidden' ? 'checked' : ''}>
+                          <span>${currentLang === 'es' ? 'No visible' : currentLang === 'en' ? 'Hidden' : currentLang === 'nl' ? 'Niet zichtbaar' : 'Non affiché'}</span>
+                        </label>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="flex flex-col md:flex-row gap-3 md:justify-end">
+                <button
+                  id="restaurant-options-cancel-btn"
+                  type="button"
+                  class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/15 text-sm font-semibold text-cream hover:bg-white/5 transition-all"
+                >
+                  <i data-lucide="x" class="w-4 h-4 text-cream"></i>
+                  <span>${currentLang === 'es' ? 'Cancelar' : currentLang === 'en' ? 'Cancel' : currentLang === 'nl' ? 'Annuleren' : 'Annuler'}</span>
+                </button>
+
+                <button
+                  id="restaurant-options-save-btn"
+                  type="button"
+                  class="btn-action inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gold/45 bg-gold/15 text-sm font-bold text-cream hover:bg-gold/20 transition-all"
+                >
+                  <i data-lucide="check" class="w-4 h-4 text-gold"></i>
+                  <span>${currentLang === 'es' ? 'Guardar opciones' : currentLang === 'en' ? 'Save options' : currentLang === 'nl' ? 'Opties opslaan' : 'Enregistrer les options'}</span>
+                </button>
+              </div>
+            </div>
+          </article>
+        </section>
       </div>
     </main>
 
@@ -9744,6 +9925,42 @@ function renderRequestRow(item, displayMode = 'active') {
     manualOrderBtn.addEventListener('click', () => {
       openManualOrderModal();
     });
+  }
+
+  function normalizeRestaurantOptionStatus(value, allowedStatuses = ['active', 'hidden']) {
+    if (value === true) return 'active';
+    if (value === false) return 'hidden';
+
+    if (typeof value === 'string' && allowedStatuses.includes(value)) {
+      return value;
+    }
+
+    return 'active';
+  }
+
+  function getRestaurantOptionStatus(key) {
+    const standbyAllowedKeys = ['booking', 'ordering'];
+    const allowedStatuses = standbyAllowedKeys.includes(key)
+      ? ['active', 'standby', 'hidden']
+      : ['active', 'hidden'];
+
+    return normalizeRestaurantOptionStatus(activeRestaurantData?.modules?.[key], allowedStatuses);
+  }
+
+  function setRestaurantOptionStatus(key, value) {
+    if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return;
+
+    if (!activeRestaurantData.modules || typeof activeRestaurantData.modules !== 'object') {
+      activeRestaurantData.modules = {};
+    }
+
+    activeRestaurantData.modules[key] = value;
+
+    if (!siteConfig.modules || typeof siteConfig.modules !== 'object') {
+      siteConfig.modules = {};
+    }
+
+    siteConfig.modules[key] = value;
   }
 
   function ensureRestaurantMenuShape() {
@@ -11102,6 +11319,11 @@ async function exportRestaurantJson() {
 
   const editorToggleBtn = document.getElementById('restaurant-menu-editor-toggle');
   const infoEditorToggleBtn = document.getElementById('restaurant-info-editor-toggle');
+  const optionsToggleBtn = document.getElementById('restaurant-options-toggle');
+  const optionsSection = document.getElementById('restaurant-options-section');
+  const optionsBackBtn = document.getElementById('restaurant-options-back-btn');
+  const optionsCancelBtn = document.getElementById('restaurant-options-cancel-btn');
+  const optionsSaveBtn = document.getElementById('restaurant-options-save-btn');
   const editorSection = document.getElementById('restaurant-menu-editor-section');
   const editorHome = document.getElementById('restaurant-menu-editor-home');
   const editorWorkspace = document.getElementById('restaurant-menu-editor-workspace');
@@ -11203,6 +11425,86 @@ const unsavedBannerSaveBtn = document.getElementById('restaurant-menu-unsaved-sa
     syncMenuEditorUiState();
     showMenuEditorHome();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openRestaurantOptionsSection() {
+    if (!optionsSection) return;
+
+    if (editorSection && !editorSection.classList.contains('hidden')) {
+      editorSection.classList.add('hidden');
+      syncMenuEditorUiState();
+      showMenuEditorHome();
+    }
+
+    optionsSection.classList.remove('hidden');
+
+    const manualActionBar = document.getElementById('manualActionBar');
+    if (manualActionBar) {
+      manualActionBar.style.display = 'none';
+    }
+
+    requestAnimationFrame(() => {
+      optionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  }
+
+  function closeRestaurantOptionsSection() {
+    if (!optionsSection) return;
+
+    optionsSection.classList.add('hidden');
+
+    const manualActionBar = document.getElementById('manualActionBar');
+    if (manualActionBar) {
+      manualActionBar.style.display = '';
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function readRestaurantOptionChoice(key) {
+    const selected = document.querySelector(`input[name="restaurant-option-${key}"]:checked`);
+    return selected?.value || 'active';
+  }
+
+  function saveRestaurantOptionsSection() {
+    setRestaurantOptionStatus('booking', readRestaurantOptionChoice('booking'));
+    setRestaurantOptionStatus('ordering', readRestaurantOptionChoice('ordering'));
+    setRestaurantOptionStatus('whatsapp', readRestaurantOptionChoice('whatsapp'));
+    setRestaurantOptionStatus('phone', readRestaurantOptionChoice('phone'));
+    setRestaurantOptionStatus('directions', readRestaurantOptionChoice('directions'));
+    setRestaurantOptionStatus('googleReviews', readRestaurantOptionChoice('googleReviews'));
+
+    showTapCartaMessage(
+      currentLang === 'es'
+        ? 'Opciones TapCarta guardadas.'
+        : currentLang === 'en'
+          ? 'TapCarta options saved.'
+          : currentLang === 'nl'
+            ? 'TapCarta-opties opgeslagen.'
+            : 'Options TapCarta enregistrées.'
+    );
+
+    closeRestaurantOptionsSection();
+  }
+
+  if (optionsToggleBtn) {
+    optionsToggleBtn.addEventListener('click', openRestaurantOptionsSection);
+  }
+
+  if (optionsBackBtn) {
+    optionsBackBtn.addEventListener('click', closeRestaurantOptionsSection);
+  }
+
+  if (optionsCancelBtn) {
+    optionsCancelBtn.addEventListener('click', closeRestaurantOptionsSection);
+  }
+
+  if (optionsSaveBtn) {
+    optionsSaveBtn.addEventListener('click', saveRestaurantOptionsSection);
   }
 
   if (infoEditorToggleBtn) {
