@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.9';
+        const APP_VERSION = 'V1.3.2.10';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10527,7 +10527,7 @@ function renderRequestRow(item, displayMode = 'active') {
     }).join('');
   }
 
-   function buildRestaurantModuleHoursCard(moduleKey, icon, title, hours) {
+  function buildRestaurantModuleHoursCard(moduleKey, icon, title, hours) {
     const text = getRestaurantHoursText();
     const moduleData = hours[moduleKey];
 
@@ -10581,24 +10581,31 @@ function renderRequestRow(item, displayMode = 'active') {
           </label>
 
           <label class="restaurant-option-choice justify-start px-4">
-            <input type="radio" name="${moduleKey}-delay" value="none" ${moduleData.delayMode === 'none' ? 'checked' : ''}>
-            <span>${text.noDelay}</span>
-          </label>
-
-          <label class="restaurant-option-choice justify-start px-4">
             <input type="radio" name="${moduleKey}-delay" value="custom" ${moduleData.delayMode === 'custom' ? 'checked' : ''}>
             <span>${text.customDelay}</span>
           </label>
 
-          <select data-custom-delay="${moduleKey}" class="rounded-xl border border-gold/20 bg-black/25 px-3 py-3 text-sm font-bold text-cream outline-none">
-            ${[15, 30, 45, 60].map((minutes) => `
-              <option value="${minutes}" ${Number(moduleData.customDelayMinutes) === minutes ? 'selected' : ''}>${minutes} min</option>
+          <div
+            data-custom-delay-panel="${moduleKey}"
+            class="${moduleData.delayMode === 'custom' ? '' : 'opacity-40 pointer-events-none'} grid grid-cols-2 md:grid-cols-4 gap-2 pt-1"
+          >
+            ${[0, 15, 45, 60].map((minutes) => `
+              <label class="restaurant-option-choice px-3">
+                <input
+                  type="radio"
+                  name="${moduleKey}-custom-delay"
+                  value="${minutes}"
+                  ${Number(moduleData.customDelayMinutes) === minutes ? 'checked' : ''}
+                >
+                <span>${minutes} min</span>
+              </label>
             `).join('')}
-          </select>
+          </div>
         </div>
       </div>
     `;
   }
+
   function readHoursRowsFromDom(fieldPrefix) {
     const result = {};
 
@@ -10633,7 +10640,7 @@ function renderRequestRow(item, displayMode = 'active') {
         mode: document.querySelector(`input[name="${moduleKey}-mode"]:checked`)?.value || 'general',
         specific: readHoursRowsFromDom(`${moduleKey}-specific`),
         delayMode: document.querySelector(`input[name="${moduleKey}-delay"]:checked`)?.value || 'auto',
-        customDelayMinutes: Number(document.querySelector(`[data-custom-delay="${moduleKey}"]`)?.value || 30)
+        customDelayMinutes: Number(document.querySelector(`input[name="${moduleKey}-custom-delay"]:checked`)?.value || 15)
       };
     });
 
@@ -10802,6 +10809,21 @@ function renderRequestRow(item, displayMode = 'active') {
 
           if (input.value === 'general' && input.checked) {
             panel.classList.add('hidden');
+          }
+        });
+      });
+
+      document.querySelectorAll(`input[name="${moduleKey}-delay"]`).forEach((input) => {
+        input.addEventListener('change', () => {
+          const panel = document.querySelector(`[data-custom-delay-panel="${moduleKey}"]`);
+          if (!panel) return;
+
+          if (input.value === 'custom' && input.checked) {
+            panel.classList.remove('opacity-40', 'pointer-events-none');
+          }
+
+          if (input.value === 'auto' && input.checked) {
+            panel.classList.add('opacity-40', 'pointer-events-none');
           }
         });
       });
