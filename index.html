@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.11';
+        const APP_VERSION = 'V1.3.2.12';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10991,6 +10991,10 @@ function renderRequestRow(item, displayMode = 'active') {
           normalizedItem.available = true;
         }
 
+        if (typeof normalizedItem.takeawayEnabled !== 'boolean') {
+          normalizedItem.takeawayEnabled = true;
+        }
+
         if (typeof normalizedItem.order !== 'number') {
           normalizedItem.order = itemIndex + 1;
         }
@@ -11113,6 +11117,20 @@ function renderRequestRow(item, displayMode = 'active') {
           : currentLang === 'nl'
             ? 'Niet beschikbaar'
             : 'Indisponible',
+      takeawayEnabled: currentLang === 'es'
+        ? 'Para llevar'
+        : currentLang === 'en'
+          ? 'Takeaway'
+          : currentLang === 'nl'
+            ? 'Afhalen'
+            : 'À emporter',
+      takeawayDisabled: currentLang === 'es'
+        ? 'No para llevar'
+        : currentLang === 'en'
+          ? 'No takeaway'
+          : currentLang === 'nl'
+            ? 'Niet afhalen'
+            : 'Non à emporter',
       noDish: currentLang === 'es'
         ? 'Ningún plato en esta categoría.'
         : currentLang === 'en'
@@ -11387,10 +11405,17 @@ function renderRequestRow(item, displayMode = 'active') {
                     >
                   </label>
 
-                  <!-- FUTUR: option commandable/non commandable.
-                       Emplacement prévu mais non affiché.
-                       Ne pas activer sans chantier commun Admin + Resto + Standard. -->
-                  <div class="hidden" data-future-field="item-orderable"></div>
+                  <label class="flex items-center justify-between gap-3 rounded-2xl border ${item.takeawayEnabled !== false ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : 'border-red-400/30 bg-red-500/12 text-red-300'} px-4 py-4 text-base font-bold">
+                    <span>${item.takeawayEnabled !== false ? editorText.takeawayEnabled : editorText.takeawayDisabled}</span>
+                    <input
+                      type="checkbox"
+                      ${item.takeawayEnabled !== false ? 'checked' : ''}
+                      data-category-index="${categoryIndex}"
+                      data-item-index="${itemIndex}"
+                      data-field="item-takeaway"
+                      class="w-6 h-6 accent-yellow-400"
+                    >
+                  </label>
 
                   <button
                     type="button"
@@ -11642,6 +11667,7 @@ let dishEditorState = null;
       price: 0,
       visible: true,
       available: true,
+      takeawayEnabled: true,
       order: 1,
       updatedAt: activeRestaurantData.menu?.updatedAt || ''
     });
@@ -12571,6 +12597,15 @@ if (dishFinishBtn) {
       if (field === 'item-available') {
         if (!activeRestaurantData.menu?.categories?.[categoryIndex]?.items?.[itemIndex]) return;
         activeRestaurantData.menu.categories[categoryIndex].items[itemIndex].available = e.target.checked;
+        markMenuEditorDirty();
+        renderRestaurantMenuEditor();
+        updateMenuEditorDirtyUi();
+        return;
+      }
+
+      if (field === 'item-takeaway') {
+        if (!activeRestaurantData.menu?.categories?.[categoryIndex]?.items?.[itemIndex]) return;
+        activeRestaurantData.menu.categories[categoryIndex].items[itemIndex].takeawayEnabled = e.target.checked;
         markMenuEditorDirty();
         renderRestaurantMenuEditor();
         updateMenuEditorDirtyUi();
