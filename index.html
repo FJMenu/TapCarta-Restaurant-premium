@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.12';
+        const APP_VERSION = 'V1.3.2.13';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10958,6 +10958,10 @@ function renderRequestRow(item, displayMode = 'active') {
         normalizedCategory.visible = true;
       }
 
+      if (typeof normalizedCategory.takeawayEnabled !== 'boolean') {
+        normalizedCategory.takeawayEnabled = true;
+      }
+
       if (!Array.isArray(normalizedCategory.items)) {
         normalizedCategory.items = [];
       }
@@ -11289,6 +11293,30 @@ function renderRequestRow(item, displayMode = 'active') {
             >
               <i data-lucide="trash-2" class="w-5 h-5 mx-auto"></i>
             </button>
+
+            <div class="col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label class="flex items-center justify-between gap-3 rounded-2xl border ${category.visible !== false ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : 'border-red-400/30 bg-red-500/12 text-red-300'} px-4 py-4 text-base font-bold">
+                <span>${category.visible !== false ? editorText.visible : editorText.hidden}</span>
+                <input
+                  type="checkbox"
+                  ${category.visible !== false ? 'checked' : ''}
+                  data-category-index="${categoryIndex}"
+                  data-field="category-visible"
+                  class="w-6 h-6 accent-yellow-400"
+                >
+              </label>
+
+              <label class="flex items-center justify-between gap-3 rounded-2xl border ${category.takeawayEnabled !== false ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : 'border-red-400/30 bg-red-500/12 text-red-300'} px-4 py-4 text-base font-bold">
+                <span>${category.takeawayEnabled !== false ? editorText.takeawayEnabled : editorText.takeawayDisabled}</span>
+                <input
+                  type="checkbox"
+                  ${category.takeawayEnabled !== false ? 'checked' : ''}
+                  data-category-index="${categoryIndex}"
+                  data-field="category-takeaway"
+                  class="w-6 h-6 accent-yellow-400"
+                >
+              </label>
+            </div>
 
             <button
               type="button"
@@ -11721,6 +11749,8 @@ function createCategory(categoryName) {
   const newCategory = {
     id: 'cat_' + Date.now(),
     name: categoryName,
+    visible: true,
+    takeawayEnabled: true,
     items: []
   };
 
@@ -12584,6 +12614,24 @@ if (dishFinishBtn) {
       const categoryIndex = Number(e.target.dataset.categoryIndex);
       const itemIndex = Number(e.target.dataset.itemIndex);
       const field = e.target.dataset.field;
+
+      if (field === 'category-visible') {
+        if (!activeRestaurantData.menu?.categories?.[categoryIndex]) return;
+        activeRestaurantData.menu.categories[categoryIndex].visible = e.target.checked;
+        markMenuEditorDirty();
+        renderRestaurantMenuEditor();
+        updateMenuEditorDirtyUi();
+        return;
+      }
+
+      if (field === 'category-takeaway') {
+        if (!activeRestaurantData.menu?.categories?.[categoryIndex]) return;
+        activeRestaurantData.menu.categories[categoryIndex].takeawayEnabled = e.target.checked;
+        markMenuEditorDirty();
+        renderRestaurantMenuEditor();
+        updateMenuEditorDirtyUi();
+        return;
+      }
 
       if (field === 'item-visible') {
         if (!activeRestaurantData.menu?.categories?.[categoryIndex]?.items?.[itemIndex]) return;
