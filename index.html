@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.6';
+        const APP_VERSION = 'V1.3.2.7';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10333,17 +10333,19 @@ function renderRequestRow(item, displayMode = 'active') {
   function ensureRestaurantHoursDraft() {
     if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return null;
 
+    const defaultGeneralHours = {
+      monday: { open: false, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
+      tuesday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
+      wednesday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
+      thursday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
+      friday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:30' }] },
+      saturday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:30' }] },
+      sunday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] }
+    };
+
     if (!activeRestaurantData.restaurantHoursDraft || typeof activeRestaurantData.restaurantHoursDraft !== 'object') {
       activeRestaurantData.restaurantHoursDraft = {
-        general: {
-          monday: { open: false, from: '11:30', to: '22:00' },
-          tuesday: { open: true, from: '11:30', to: '22:00' },
-          wednesday: { open: true, from: '11:30', to: '22:00' },
-          thursday: { open: true, from: '11:30', to: '22:00' },
-          friday: { open: true, from: '11:30', to: '22:00' },
-          saturday: { open: true, from: '10:00', to: '23:00' },
-          sunday: { open: true, from: '10:00', to: '23:00' }
-        },
+        general: structuredClone(defaultGeneralHours),
         booking: {
           mode: 'general',
           delayMode: 'auto',
@@ -10357,7 +10359,63 @@ function renderRequestRow(item, displayMode = 'active') {
       };
     }
 
-    return activeRestaurantData.restaurantHoursDraft;
+    const draft = activeRestaurantData.restaurantHoursDraft;
+
+    if (!draft.general || typeof draft.general !== 'object') {
+      draft.general = structuredClone(defaultGeneralHours);
+    }
+
+    Object.keys(defaultGeneralHours).forEach((dayKey) => {
+      const day = draft.general[dayKey];
+
+      if (!day || typeof day !== 'object') {
+        draft.general[dayKey] = structuredClone(defaultGeneralHours[dayKey]);
+        return;
+      }
+
+      if (!Array.isArray(day.slots)) {
+        day.slots = [
+          { from: day.from || defaultGeneralHours[dayKey].slots[0].from, to: day.to || defaultGeneralHours[dayKey].slots[0].to },
+          { from: '', to: '' }
+        ];
+      }
+
+      while (day.slots.length < 2) {
+        day.slots.push({ from: '', to: '' });
+      }
+
+      day.slots = day.slots.slice(0, 2).map((slot, index) => ({
+        from: typeof slot?.from === 'string' ? slot.from : defaultGeneralHours[dayKey].slots[index]?.from || '',
+        to: typeof slot?.to === 'string' ? slot.to : defaultGeneralHours[dayKey].slots[index]?.to || ''
+      }));
+
+      if (typeof day.open !== 'boolean') {
+        day.open = defaultGeneralHours[dayKey].open;
+      }
+
+      delete day.from;
+      delete day.to;
+    });
+
+    ['booking', 'ordering'].forEach((moduleKey) => {
+      if (!draft[moduleKey] || typeof draft[moduleKey] !== 'object') {
+        draft[moduleKey] = {};
+      }
+
+      if (!['general', 'specific'].includes(draft[moduleKey].mode)) {
+        draft[moduleKey].mode = 'general';
+      }
+
+      if (!['auto', 'none', 'custom'].includes(draft[moduleKey].delayMode)) {
+        draft[moduleKey].delayMode = 'auto';
+      }
+
+      if (![15, 30, 45, 60].includes(Number(draft[moduleKey].customDelayMinutes))) {
+        draft[moduleKey].customDelayMinutes = 30;
+      }
+    });
+
+    return draft;
   }
 
   function getRestaurantDayLabels() {
@@ -10376,21 +10434,80 @@ function renderRequestRow(item, displayMode = 'active') {
     const labels = getRestaurantDayLabels();
     const text = getRestaurantHoursText();
 
+    const service1Label =
+      currentLang === 'es' ? 'Servicio 1'
+        : currentLang === 'en' ? 'Service 1'
+          : currentLang === 'nl' ? 'Service 1'
+            : 'Service 1';
+
+    const service2Label =
+      currentLang === 'es' ? 'Servicio 2'
+        : currentLang === 'en' ? 'Service 2'
+          : currentLang === 'nl' ? 'Service 2'
+            : 'Service 2';
+
+    const optionalLabel =
+      currentLang === 'es' ? 'opcional'
+        : currentLang === 'en' ? 'optional'
+          : currentLang === 'nl' ? 'optioneel'
+            : 'optionnel';
+
     return Object.entries(labels).map(([dayKey, label]) => {
       const day = hours.general[dayKey];
+      const slot1 = day.slots?.[0] || { from: '', to: '' };
+      const slot2 = day.slots?.[1] || { from: '', to: '' };
 
       return `
-        <div class="grid md:grid-cols-[1fr_120px_140px_140px] gap-3 items-center rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-          <div class="font-bold text-cream">${label}</div>
+        <div class="rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="font-bold text-cream">${label}</div>
 
-          <label class="inline-flex items-center gap-2 text-sm font-semibold text-cream/85">
-            <input type="checkbox" data-hours-open="${dayKey}" ${day.open ? 'checked' : ''} class="accent-gold">
-            <span>${day.open ? text.open : text.closed}</span>
-          </label>
+            <label class="inline-flex items-center gap-2 text-sm font-semibold text-cream/85">
+              <input type="checkbox" data-hours-open="${dayKey}" ${day.open ? 'checked' : ''} class="accent-gold">
+              <span>${day.open ? text.open : text.closed}</span>
+            </label>
+          </div>
 
-          <input type="time" data-hours-from="${dayKey}" value="${day.from}" class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none">
+          <div class="grid gap-3">
+            <div class="grid md:grid-cols-[100px_1fr_1fr] gap-3 items-center">
+              <div class="text-xs font-bold uppercase tracking-[0.12em] text-gold/80">${service1Label}</div>
 
-          <input type="time" data-hours-to="${dayKey}" value="${day.to}" class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none">
+              <input
+                type="time"
+                data-hours-slot-from="${dayKey}-0"
+                value="${slot1.from}"
+                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
+              >
+
+              <input
+                type="time"
+                data-hours-slot-to="${dayKey}-0"
+                value="${slot1.to}"
+                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
+              >
+            </div>
+
+            <div class="grid md:grid-cols-[100px_1fr_1fr] gap-3 items-center">
+              <div>
+                <div class="text-xs font-bold uppercase tracking-[0.12em] text-gold/80">${service2Label}</div>
+                <div class="text-[0.68rem] text-cream/42">${optionalLabel}</div>
+              </div>
+
+              <input
+                type="time"
+                data-hours-slot-from="${dayKey}-1"
+                value="${slot2.from}"
+                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
+              >
+
+              <input
+                type="time"
+                data-hours-slot-to="${dayKey}-1"
+                value="${slot2.to}"
+                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
+              >
+            </div>
+          </div>
         </div>
       `;
     }).join('');
@@ -10457,8 +10574,16 @@ function renderRequestRow(item, displayMode = 'active') {
     Object.keys(getRestaurantDayLabels()).forEach((dayKey) => {
       hours.general[dayKey] = {
         open: Boolean(document.querySelector(`[data-hours-open="${dayKey}"]`)?.checked),
-        from: document.querySelector(`[data-hours-from="${dayKey}"]`)?.value || '11:30',
-        to: document.querySelector(`[data-hours-to="${dayKey}"]`)?.value || '22:00'
+        slots: [
+          {
+            from: document.querySelector(`[data-hours-slot-from="${dayKey}-0"]`)?.value || '',
+            to: document.querySelector(`[data-hours-slot-to="${dayKey}-0"]`)?.value || ''
+          },
+          {
+            from: document.querySelector(`[data-hours-slot-from="${dayKey}-1"]`)?.value || '',
+            to: document.querySelector(`[data-hours-slot-to="${dayKey}-1"]`)?.value || ''
+          }
+        ]
       };
     });
 
