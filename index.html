@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.5';
+        const APP_VERSION = 'V1.3.2.6';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10285,7 +10285,7 @@ function renderRequestRow(item, displayMode = 'active') {
     };
   }
 
-  function closeRestaurantInfoModal() {
+   function closeRestaurantInfoModal() {
     document.getElementById('restaurant-info-modal')?.remove();
 
     const manualActionBar = document.getElementById('manualActionBar');
@@ -10294,19 +10294,190 @@ function renderRequestRow(item, displayMode = 'active') {
     }
   }
 
-  function openRestaurantInfoModal() {
-    document.getElementById('restaurant-info-modal')?.remove();
+  function renderRestaurantInfoIcons() {
+    if (window.lucide) {
+      requestAnimationFrame(() => {
+        lucide.createIcons();
+      });
+    }
+  }
 
-    const text = getRestaurantInfoText();
+  function getRestaurantHoursText() {
+    return {
+      title: currentLang === 'es' ? 'Horarios' : currentLang === 'en' ? 'Opening hours' : currentLang === 'nl' ? 'Openingsuren' : 'Horaires',
+      subtitle: currentLang === 'es'
+        ? 'Configure los horarios generales y las reglas para reservas y para llevar.'
+        : currentLang === 'en'
+          ? 'Configure general hours and rules for bookings and takeaway.'
+          : currentLang === 'nl'
+            ? 'Configureer algemene uren en regels voor reservaties en afhalen.'
+            : 'Configurez les horaires généraux et les règles pour les réservations et l’à emporter.',
+      back: currentLang === 'es' ? 'Volver' : currentLang === 'en' ? 'Back' : currentLang === 'nl' ? 'Terug' : 'Retour',
+      close: currentLang === 'es' ? 'Cerrar' : currentLang === 'en' ? 'Close' : currentLang === 'nl' ? 'Sluiten' : 'Fermer',
+      save: currentLang === 'es' ? 'Guardar' : currentLang === 'en' ? 'Save' : currentLang === 'nl' ? 'Opslaan' : 'Enregistrer',
+      saved: currentLang === 'es' ? 'Horarios guardados.' : currentLang === 'en' ? 'Opening hours saved.' : currentLang === 'nl' ? 'Openingsuren opgeslagen.' : 'Horaires enregistrés.',
+      general: currentLang === 'es' ? 'Horarios generales' : currentLang === 'en' ? 'General opening hours' : currentLang === 'nl' ? 'Algemene openingsuren' : 'Horaires généraux',
+      booking: currentLang === 'es' ? 'Reservas' : currentLang === 'en' ? 'Bookings' : currentLang === 'nl' ? 'Reservaties' : 'Réservations',
+      ordering: currentLang === 'es' ? 'Para llevar' : currentLang === 'en' ? 'Takeaway' : currentLang === 'nl' ? 'Afhalen' : 'À emporter',
+      open: currentLang === 'es' ? 'Abierto' : currentLang === 'en' ? 'Open' : currentLang === 'nl' ? 'Open' : 'Ouvert',
+      closed: currentLang === 'es' ? 'Cerrado' : currentLang === 'en' ? 'Closed' : currentLang === 'nl' ? 'Gesloten' : 'Fermé',
+      useGeneral: currentLang === 'es' ? 'Usar horarios generales' : currentLang === 'en' ? 'Use general hours' : currentLang === 'nl' ? 'Algemene uren gebruiken' : 'Utiliser les horaires généraux',
+      specific: currentLang === 'es' ? 'Horarios específicos' : currentLang === 'en' ? 'Specific hours' : currentLang === 'nl' ? 'Specifieke uren' : 'Horaires spécifiques',
+      delay: currentLang === 'es' ? 'Plazo mínimo' : currentLang === 'en' ? 'Minimum delay' : currentLang === 'nl' ? 'Minimale wachttijd' : 'Délai minimum',
+      autoDelay: currentLang === 'es' ? 'Automático recomendado — 30 min' : currentLang === 'en' ? 'Recommended automatic — 30 min' : currentLang === 'nl' ? 'Aanbevolen automatisch — 30 min' : 'Automatique recommandé — 30 min',
+      noDelay: currentLang === 'es' ? 'Sin plazo mínimo' : currentLang === 'en' ? 'No minimum delay' : currentLang === 'nl' ? 'Geen minimale wachttijd' : 'Aucun délai minimum',
+      customDelay: currentLang === 'es' ? 'Definir yo mismo' : currentLang === 'en' ? 'Set myself' : currentLang === 'nl' ? 'Zelf instellen' : 'Définir moi-même'
+    };
+  }
 
-    const manualActionBar = document.getElementById('manualActionBar');
-    if (manualActionBar) {
-      manualActionBar.style.display = 'none';
+  function ensureRestaurantHoursDraft() {
+    if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return null;
+
+    if (!activeRestaurantData.restaurantHoursDraft || typeof activeRestaurantData.restaurantHoursDraft !== 'object') {
+      activeRestaurantData.restaurantHoursDraft = {
+        general: {
+          monday: { open: false, from: '11:30', to: '22:00' },
+          tuesday: { open: true, from: '11:30', to: '22:00' },
+          wednesday: { open: true, from: '11:30', to: '22:00' },
+          thursday: { open: true, from: '11:30', to: '22:00' },
+          friday: { open: true, from: '11:30', to: '22:00' },
+          saturday: { open: true, from: '10:00', to: '23:00' },
+          sunday: { open: true, from: '10:00', to: '23:00' }
+        },
+        booking: {
+          mode: 'general',
+          delayMode: 'auto',
+          customDelayMinutes: 30
+        },
+        ordering: {
+          mode: 'general',
+          delayMode: 'auto',
+          customDelayMinutes: 30
+        }
+      };
     }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'restaurant-info-modal';
-    overlay.className = 'restaurant-options-modal';
+    return activeRestaurantData.restaurantHoursDraft;
+  }
+
+  function getRestaurantDayLabels() {
+    return {
+      monday: currentLang === 'es' ? 'Lunes' : currentLang === 'en' ? 'Monday' : currentLang === 'nl' ? 'Maandag' : 'Lundi',
+      tuesday: currentLang === 'es' ? 'Martes' : currentLang === 'en' ? 'Tuesday' : currentLang === 'nl' ? 'Dinsdag' : 'Mardi',
+      wednesday: currentLang === 'es' ? 'Miércoles' : currentLang === 'en' ? 'Wednesday' : currentLang === 'nl' ? 'Woensdag' : 'Mercredi',
+      thursday: currentLang === 'es' ? 'Jueves' : currentLang === 'en' ? 'Thursday' : currentLang === 'nl' ? 'Donderdag' : 'Jeudi',
+      friday: currentLang === 'es' ? 'Viernes' : currentLang === 'en' ? 'Friday' : currentLang === 'nl' ? 'Vrijdag' : 'Vendredi',
+      saturday: currentLang === 'es' ? 'Sábado' : currentLang === 'en' ? 'Saturday' : currentLang === 'nl' ? 'Zaterdag' : 'Samedi',
+      sunday: currentLang === 'es' ? 'Domingo' : currentLang === 'en' ? 'Sunday' : currentLang === 'nl' ? 'Zondag' : 'Dimanche'
+    };
+  }
+
+  function buildRestaurantHoursRows(hours) {
+    const labels = getRestaurantDayLabels();
+    const text = getRestaurantHoursText();
+
+    return Object.entries(labels).map(([dayKey, label]) => {
+      const day = hours.general[dayKey];
+
+      return `
+        <div class="grid md:grid-cols-[1fr_120px_140px_140px] gap-3 items-center rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+          <div class="font-bold text-cream">${label}</div>
+
+          <label class="inline-flex items-center gap-2 text-sm font-semibold text-cream/85">
+            <input type="checkbox" data-hours-open="${dayKey}" ${day.open ? 'checked' : ''} class="accent-gold">
+            <span>${day.open ? text.open : text.closed}</span>
+          </label>
+
+          <input type="time" data-hours-from="${dayKey}" value="${day.from}" class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none">
+
+          <input type="time" data-hours-to="${dayKey}" value="${day.to}" class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none">
+        </div>
+      `;
+    }).join('');
+  }
+
+  function buildRestaurantModuleHoursCard(moduleKey, icon, title, hours) {
+    const text = getRestaurantHoursText();
+    const moduleData = hours[moduleKey];
+
+    return `
+      <div class="rounded-[24px] border border-gold/20 bg-black/20 p-5">
+        <div class="flex items-start gap-3 mb-4">
+          <div class="w-10 h-10 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+            <i data-lucide="${icon}" class="w-5 h-5 text-gold"></i>
+          </div>
+          <div>
+            <div class="font-display text-xl font-bold text-cream">${title}</div>
+            <div class="text-sm text-cream/55 mt-1">${text.delay}</div>
+          </div>
+        </div>
+
+        <div class="grid gap-2 mb-4">
+          <label class="restaurant-option-choice justify-start px-4">
+            <input type="radio" name="${moduleKey}-mode" value="general" ${moduleData.mode === 'general' ? 'checked' : ''}>
+            <span>${text.useGeneral}</span>
+          </label>
+
+          <label class="restaurant-option-choice justify-start px-4">
+            <input type="radio" name="${moduleKey}-mode" value="specific" ${moduleData.mode === 'specific' ? 'checked' : ''}>
+            <span>${text.specific}</span>
+          </label>
+        </div>
+
+        <div class="grid gap-2">
+          <label class="restaurant-option-choice justify-start px-4">
+            <input type="radio" name="${moduleKey}-delay" value="auto" ${moduleData.delayMode === 'auto' ? 'checked' : ''}>
+            <span>${text.autoDelay}</span>
+          </label>
+
+          <label class="restaurant-option-choice justify-start px-4">
+            <input type="radio" name="${moduleKey}-delay" value="none" ${moduleData.delayMode === 'none' ? 'checked' : ''}>
+            <span>${text.noDelay}</span>
+          </label>
+
+          <label class="restaurant-option-choice justify-start px-4">
+            <input type="radio" name="${moduleKey}-delay" value="custom" ${moduleData.delayMode === 'custom' ? 'checked' : ''}>
+            <span>${text.customDelay}</span>
+          </label>
+
+          <select data-custom-delay="${moduleKey}" class="rounded-xl border border-gold/20 bg-black/25 px-3 py-3 text-sm font-bold text-cream outline-none">
+            ${[15, 30, 45, 60].map((minutes) => `
+              <option value="${minutes}" ${Number(moduleData.customDelayMinutes) === minutes ? 'selected' : ''}>${minutes} min</option>
+            `).join('')}
+          </select>
+        </div>
+      </div>
+    `;
+  }
+
+  function saveRestaurantHoursDraft() {
+    const hours = ensureRestaurantHoursDraft();
+    if (!hours) return;
+
+    Object.keys(getRestaurantDayLabels()).forEach((dayKey) => {
+      hours.general[dayKey] = {
+        open: Boolean(document.querySelector(`[data-hours-open="${dayKey}"]`)?.checked),
+        from: document.querySelector(`[data-hours-from="${dayKey}"]`)?.value || '11:30',
+        to: document.querySelector(`[data-hours-to="${dayKey}"]`)?.value || '22:00'
+      };
+    });
+
+    ['booking', 'ordering'].forEach((moduleKey) => {
+      hours[moduleKey] = {
+        mode: document.querySelector(`input[name="${moduleKey}-mode"]:checked`)?.value || 'general',
+        delayMode: document.querySelector(`input[name="${moduleKey}-delay"]:checked`)?.value || 'auto',
+        customDelayMinutes: Number(document.querySelector(`[data-custom-delay="${moduleKey}"]`)?.value || 30)
+      };
+    });
+
+    showTapCartaMessage(getRestaurantHoursText().saved);
+  }
+
+  function renderRestaurantInfoHome() {
+    const overlay = document.getElementById('restaurant-info-modal');
+    if (!overlay) return;
+
+    const text = getRestaurantInfoText();
 
     overlay.innerHTML = `
       <div class="restaurant-options-panel" role="dialog" aria-modal="true">
@@ -10323,23 +10494,14 @@ function renderRequestRow(item, displayMode = 'active') {
             </div>
           </div>
 
-          <button
-            type="button"
-            id="restaurant-info-close-btn"
-            class="btn-action w-11 h-11 rounded-2xl border border-white/15 text-cream hover:bg-white/5 inline-flex items-center justify-center shrink-0"
-            aria-label="${text.close}"
-          >
+          <button type="button" id="restaurant-info-close-btn" class="btn-action w-11 h-11 rounded-2xl border border-white/15 text-cream hover:bg-white/5 inline-flex items-center justify-center shrink-0">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
 
         <div class="restaurant-options-body">
           <div class="grid md:grid-cols-2 gap-4">
-            <button
-              type="button"
-              id="restaurant-info-hours-btn"
-              class="btn-action text-left rounded-[24px] border border-gold/28 bg-white/[0.035] p-5 hover:bg-gold/[0.08] transition-all"
-            >
+            <button type="button" id="restaurant-info-hours-btn" class="btn-action text-left rounded-[24px] border border-gold/28 bg-white/[0.035] p-5 hover:bg-gold/[0.08] transition-all">
               <div class="flex items-start gap-3">
                 <div class="w-11 h-11 rounded-2xl bg-gold/12 border border-gold/25 flex items-center justify-center shrink-0">
                   <i data-lucide="clock-3" class="w-5 h-5 text-gold"></i>
@@ -10351,11 +10513,7 @@ function renderRequestRow(item, displayMode = 'active') {
               </div>
             </button>
 
-            <button
-              type="button"
-              id="restaurant-info-general-btn"
-              class="btn-action text-left rounded-[24px] border border-white/12 bg-white/[0.025] p-5 hover:bg-white/[0.045] transition-all"
-            >
+            <button type="button" id="restaurant-info-general-btn" class="btn-action text-left rounded-[24px] border border-white/12 bg-white/[0.025] p-5 hover:bg-white/[0.045] transition-all">
               <div class="flex items-start gap-3">
                 <div class="w-11 h-11 rounded-2xl bg-white/6 border border-white/12 flex items-center justify-center shrink-0">
                   <i data-lucide="info" class="w-5 h-5 text-cream/70"></i>
@@ -10363,9 +10521,7 @@ function renderRequestRow(item, displayMode = 'active') {
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
                     <div class="font-display text-xl font-bold text-cream">${text.generalTitle}</div>
-                    <span class="rounded-full border border-white/12 bg-white/5 px-2 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-cream/55">
-                      ${text.comingSoon}
-                    </span>
+                    <span class="rounded-full border border-white/12 bg-white/5 px-2 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-cream/55">${text.comingSoon}</span>
                   </div>
                   <div class="text-sm text-cream/52 mt-2 leading-relaxed">${text.generalText}</div>
                 </div>
@@ -10375,11 +10531,7 @@ function renderRequestRow(item, displayMode = 'active') {
         </div>
 
         <div class="restaurant-options-footer">
-          <button
-            type="button"
-            id="restaurant-info-cancel-btn"
-            class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/15 text-sm font-semibold text-cream hover:bg-white/5 transition-all"
-          >
+          <button type="button" id="restaurant-info-cancel-btn" class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/15 text-sm font-semibold text-cream hover:bg-white/5 transition-all">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
             <span>${text.close}</span>
           </button>
@@ -10387,18 +10539,106 @@ function renderRequestRow(item, displayMode = 'active') {
       </div>
     `;
 
-    document.body.appendChild(overlay);
+    document.getElementById('restaurant-info-close-btn')?.addEventListener('click', closeRestaurantInfoModal);
+    document.getElementById('restaurant-info-cancel-btn')?.addEventListener('click', closeRestaurantInfoModal);
+    document.getElementById('restaurant-info-hours-btn')?.addEventListener('click', renderRestaurantHoursScreen);
+    document.getElementById('restaurant-info-general-btn')?.addEventListener('click', () => showTapCartaMessage(text.comingSoon));
+
+    renderRestaurantInfoIcons();
+  }
+
+  function renderRestaurantHoursScreen() {
+    const overlay = document.getElementById('restaurant-info-modal');
+    if (!overlay) return;
+
+    const hours = ensureRestaurantHoursDraft();
+    if (!hours) return;
+
+    const text = getRestaurantHoursText();
+
+    overlay.innerHTML = `
+      <div class="restaurant-options-panel" role="dialog" aria-modal="true">
+        <div class="restaurant-options-header">
+          <div class="min-w-0">
+            <div class="inline-flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-gold/14 border border-gold/28 flex items-center justify-center shrink-0">
+                <i data-lucide="clock-3" class="w-5 h-5 text-gold"></i>
+              </div>
+              <div>
+                <div class="font-display text-2xl font-bold text-cream leading-tight">${text.title}</div>
+                <div class="text-sm text-cream/58 mt-1">${text.subtitle}</div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" id="restaurant-info-close-btn" class="btn-action w-11 h-11 rounded-2xl border border-white/15 text-cream hover:bg-white/5 inline-flex items-center justify-center shrink-0">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="restaurant-options-body">
+          <div class="grid gap-4">
+            <div class="rounded-[24px] border border-gold/28 bg-white/[0.035] p-5">
+              <div class="font-display text-xl font-bold text-cream mb-4">${text.general}</div>
+              <div class="grid gap-3">
+                ${buildRestaurantHoursRows(hours)}
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              ${buildRestaurantModuleHoursCard('booking', 'calendar-check', text.booking, hours)}
+              ${buildRestaurantModuleHoursCard('ordering', 'shopping-bag', text.ordering, hours)}
+            </div>
+          </div>
+        </div>
+
+        <div class="restaurant-options-footer">
+          <button type="button" id="restaurant-info-back-btn" class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/15 text-sm font-semibold text-cream hover:bg-white/5 transition-all">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>${text.back}</span>
+          </button>
+
+          <button type="button" id="restaurant-hours-save-btn" class="btn-action inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gold/45 bg-gold/15 text-sm font-bold text-cream hover:bg-gold/20 transition-all">
+            <i data-lucide="check" class="w-4 h-4 text-gold"></i>
+            <span>${text.save}</span>
+          </button>
+
+          <button type="button" id="restaurant-info-cancel-btn" class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gold/25 text-sm font-semibold text-gold hover:bg-gold/10 transition-all">
+            <i data-lucide="x" class="w-4 h-4 text-gold"></i>
+            <span>${text.close}</span>
+          </button>
+        </div>
+      </div>
+    `;
 
     document.getElementById('restaurant-info-close-btn')?.addEventListener('click', closeRestaurantInfoModal);
     document.getElementById('restaurant-info-cancel-btn')?.addEventListener('click', closeRestaurantInfoModal);
+    document.getElementById('restaurant-info-back-btn')?.addEventListener('click', renderRestaurantInfoHome);
+    document.getElementById('restaurant-hours-save-btn')?.addEventListener('click', saveRestaurantHoursDraft);
 
-    document.getElementById('restaurant-info-hours-btn')?.addEventListener('click', () => {
-      showTapCartaMessage(text.nextStep);
+    document.querySelectorAll('[data-hours-open]').forEach((input) => {
+      input.addEventListener('change', () => {
+        const label = input.closest('label')?.querySelector('span');
+        if (label) label.textContent = input.checked ? text.open : text.closed;
+      });
     });
 
-    document.getElementById('restaurant-info-general-btn')?.addEventListener('click', () => {
-      showTapCartaMessage(text.comingSoon);
-    });
+    renderRestaurantInfoIcons();
+  }
+
+  function openRestaurantInfoModal() {
+    document.getElementById('restaurant-info-modal')?.remove();
+
+    const manualActionBar = document.getElementById('manualActionBar');
+    if (manualActionBar) {
+      manualActionBar.style.display = 'none';
+    }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'restaurant-info-modal';
+    overlay.className = 'restaurant-options-modal';
+
+    document.body.appendChild(overlay);
 
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay) {
@@ -10406,11 +10646,22 @@ function renderRequestRow(item, displayMode = 'active') {
       }
     });
 
-    if (window.lucide) {
-      requestAnimationFrame(() => {
-        lucide.createIcons();
-      });
-    }
+    renderRestaurantInfoHome();
+  }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'restaurant-info-modal';
+    overlay.className = 'restaurant-options-modal';
+
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        closeRestaurantInfoModal();
+      }
+    });
+
+    renderRestaurantInfoHome();
   }
 
   function ensureRestaurantMenuShape() {
