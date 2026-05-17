@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.1.6';
+        const APP_VERSION = 'V1.4.1.7';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -1319,59 +1319,78 @@
       outline: none;
     }
 
-    #restaurant-info-modal,
-    #restaurant-info-modal * {
-      max-width: 100%;
+    #restaurant-info-modal .restaurant-options-panel {
+      overflow: hidden;
     }
 
-    #restaurant-info-modal .restaurant-options-panel,
-    #restaurant-info-modal .restaurant-options-header,
-    #restaurant-info-modal .restaurant-options-body,
-    #restaurant-info-modal .restaurant-options-footer {
+    #restaurant-info-modal .restaurant-options-body {
+      overflow-y: auto;
       overflow-x: hidden;
     }
 
-    #restaurant-info-modal .truncate {
+    #restaurant-info-modal .min-w-0,
+    #restaurant-info-modal .grid,
+    #restaurant-info-modal .flex {
       min-width: 0;
+    }
+
+    #restaurant-info-modal .truncate {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    #restaurant-info-modal textarea,
-    #restaurant-info-modal input:not([type="checkbox"]):not([type="radio"]) {
+    #restaurant-info-modal input:not([type="checkbox"]):not([type="radio"]),
+    #restaurant-info-modal textarea {
+      width: 100%;
       min-width: 0;
-    }
-
-    #restaurant-info-modal button {
       max-width: 100%;
     }
 
+    @media (min-width: 721px) {
+      #restaurant-info-modal .restaurant-options-body {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+    }
+
     @media (max-width: 720px) {
+      #restaurant-info-modal.restaurant-options-modal {
+        padding: 10px;
+        overflow: hidden;
+      }
+
       #restaurant-info-modal .restaurant-options-panel {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 20px);
+      }
+
+      #restaurant-info-modal .restaurant-options-header,
+      #restaurant-info-modal .restaurant-options-body,
+      #restaurant-info-modal .restaurant-options-footer {
         width: 100%;
         max-width: 100%;
       }
 
       #restaurant-info-modal .restaurant-options-body {
+        padding-left: 12px;
+        padding-right: 12px;
+        overflow-y: auto;
         overflow-x: hidden;
       }
 
-      #restaurant-info-modal .flex {
-        min-width: 0;
-      }
-
-      #restaurant-info-modal .grid {
-        min-width: 0;
-      }
-
-      #restaurant-info-modal .inline-flex {
-        max-width: 100%;
+      #restaurant-info-modal .restaurant-options-footer {
+        gap: 8px;
       }
 
       #restaurant-info-modal [data-general-copy],
       #restaurant-info-modal [data-general-request] {
         width: 100%;
+        justify-content: center;
       }
     }
   </style>
