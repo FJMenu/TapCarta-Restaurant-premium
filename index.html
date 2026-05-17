@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.13';
+        const APP_VERSION = 'V1.3.2.14';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10647,6 +10647,316 @@ function renderRequestRow(item, displayMode = 'active') {
     showTapCartaMessage(getRestaurantHoursText().saved);
   }
 
+  function getRestaurantGeneralInfoText() {
+    return {
+      title: currentLang === 'es'
+        ? 'Información general'
+        : currentLang === 'en'
+          ? 'General information'
+          : currentLang === 'nl'
+            ? 'Algemene informatie'
+            : 'Informations générales',
+
+      subtitle: currentLang === 'es'
+        ? 'Actualice los datos principales visibles o útiles para sus clientes.'
+        : currentLang === 'en'
+          ? 'Update the main details visible or useful to your customers.'
+          : currentLang === 'nl'
+            ? 'Werk de belangrijkste gegevens bij die zichtbaar of nuttig zijn voor uw klanten.'
+            : 'Modifiez les informations principales visibles ou utiles pour vos clients.',
+
+      back: currentLang === 'es' ? 'Volver' : currentLang === 'en' ? 'Back' : currentLang === 'nl' ? 'Terug' : 'Retour',
+      close: currentLang === 'es' ? 'Cerrar' : currentLang === 'en' ? 'Close' : currentLang === 'nl' ? 'Sluiten' : 'Fermer',
+      save: currentLang === 'es' ? 'Guardar' : currentLang === 'en' ? 'Save' : currentLang === 'nl' ? 'Opslaan' : 'Enregistrer',
+
+      saved: currentLang === 'es'
+        ? 'Información guardada.'
+        : currentLang === 'en'
+          ? 'Information saved.'
+          : currentLang === 'nl'
+            ? 'Informatie opgeslagen.'
+            : 'Informations enregistrées.',
+
+      restaurantName: currentLang === 'es' ? 'Nombre del restaurante' : currentLang === 'en' ? 'Restaurant name' : currentLang === 'nl' ? 'Naam van het restaurant' : 'Nom du restaurant',
+      address: currentLang === 'es' ? 'Dirección' : currentLang === 'en' ? 'Address' : currentLang === 'nl' ? 'Adres' : 'Adresse',
+      phone: currentLang === 'es' ? 'Teléfono' : currentLang === 'en' ? 'Phone' : currentLang === 'nl' ? 'Telefoon' : 'Téléphone',
+      whatsapp: currentLang === 'es' ? 'WhatsApp' : currentLang === 'en' ? 'WhatsApp' : currentLang === 'nl' ? 'WhatsApp' : 'WhatsApp',
+      googleReview: currentLang === 'es' ? 'Enlace de reseñas Google' : currentLang === 'en' ? 'Google review link' : currentLang === 'nl' ? 'Google reviewlink' : 'Lien avis Google',
+      googleMaps: currentLang === 'es' ? 'Enlace Google Maps' : currentLang === 'en' ? 'Google Maps link' : currentLang === 'nl' ? 'Google Maps-link' : 'Lien Google Maps',
+      logo: currentLang === 'es' ? 'Logo / imagen' : currentLang === 'en' ? 'Logo / image' : currentLang === 'nl' ? 'Logo / afbeelding' : 'Logo / image',
+      clientMenuUrl: currentLang === 'es' ? 'Enlace del menú cliente' : currentLang === 'en' ? 'Customer menu link' : currentLang === 'nl' ? 'Link naar klantmenu' : 'Lien du menu client',
+      qrMenuUrl: currentLang === 'es' ? 'Enlace QR' : currentLang === 'en' ? 'QR link' : currentLang === 'nl' ? 'QR-link' : 'Lien QR',
+
+      languages: currentLang === 'es' ? 'Idiomas visibles' : currentLang === 'en' ? 'Visible languages' : currentLang === 'nl' ? 'Zichtbare talen' : 'Langues visibles',
+
+      helpTitle: currentLang === 'es'
+        ? 'Estos datos preparan la ficha pública del restaurante'
+        : currentLang === 'en'
+          ? 'These details prepare the restaurant public profile'
+          : currentLang === 'nl'
+            ? 'Deze gegevens bereiden de publieke restaurantfiche voor'
+            : 'Ces informations préparent la fiche publique du restaurant',
+
+      helpText: currentLang === 'es'
+        ? 'Por ahora se guardan en esta sesión. La conexión Supabase se hará después en un bloque separado.'
+        : currentLang === 'en'
+          ? 'For now, they are saved in this session. Supabase connection will be handled later in a separate step.'
+          : currentLang === 'nl'
+            ? 'Voorlopig worden ze in deze sessie bewaard. De Supabase-koppeling komt later apart.'
+            : 'Pour l’instant, elles sont gardées dans cette session. Le branchement Supabase sera fait ensuite dans un bloc séparé.'
+    };
+  }
+
+  function ensureRestaurantGeneralInfoDraft() {
+    if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return null;
+
+    if (!activeRestaurantData.restaurantGeneralInfoDraft || typeof activeRestaurantData.restaurantGeneralInfoDraft !== 'object') {
+      activeRestaurantData.restaurantGeneralInfoDraft = {};
+    }
+
+    const draft = activeRestaurantData.restaurantGeneralInfoDraft;
+
+    const identity = activeRestaurantData.identity || {};
+    const links = activeRestaurantData.links || {};
+    const technical = activeRestaurantData.technical || {};
+
+    if (typeof draft.restaurantName !== 'string') {
+      draft.restaurantName = identity.name || activeRestaurantData.name || siteConfig.restaurantName || '';
+    }
+
+    if (typeof draft.address !== 'string') {
+      draft.address = identity.address || activeRestaurantData.address || siteConfig.address || '';
+    }
+
+    if (typeof draft.phone !== 'string') {
+      draft.phone = identity.phone || activeRestaurantData.phone || siteConfig.phone || '';
+    }
+
+    if (typeof draft.whatsapp !== 'string') {
+      draft.whatsapp = identity.whatsapp || activeRestaurantData.whatsapp || siteConfig.whatsapp || '';
+    }
+
+    if (typeof draft.googleReviewUrl !== 'string') {
+      draft.googleReviewUrl = technical.reviewWriteUrl || links.reviewWriteUrl || siteConfig.reviewWriteUrl || '';
+    }
+
+    if (typeof draft.googleMapsUrl !== 'string') {
+      draft.googleMapsUrl = technical.directionsUrl || links.directionsUrl || siteConfig.directionsUrl || '';
+    }
+
+    if (typeof draft.logoUrl !== 'string') {
+      draft.logoUrl = identity.logoUrl || activeRestaurantData.logoUrl || siteConfig.appLogoUrl || '';
+    }
+
+    if (typeof draft.clientMenuUrl !== 'string') {
+      draft.clientMenuUrl = technical.clientMenuUrl || links.clientMenuUrl || siteConfig.clientMenuUrl || '';
+    }
+
+    if (typeof draft.qrMenuUrl !== 'string') {
+      draft.qrMenuUrl = technical.qrMenuUrl || links.qrMenuUrl || siteConfig.qrMenuUrl || '';
+    }
+
+    if (!Array.isArray(draft.activeLanguages)) {
+      draft.activeLanguages = Array.isArray(activeRestaurantData.activeLanguages)
+        ? [...activeRestaurantData.activeLanguages]
+        : ['fr', 'es', 'en', 'nl'];
+    }
+
+    return draft;
+  }
+
+  function saveRestaurantGeneralInfoDraft() {
+    const draft = ensureRestaurantGeneralInfoDraft();
+    if (!draft) return;
+
+    const readValue = (id) => document.getElementById(id)?.value?.trim() || '';
+
+    draft.restaurantName = readValue('restaurant-general-name');
+    draft.address = readValue('restaurant-general-address');
+    draft.phone = readValue('restaurant-general-phone');
+    draft.whatsapp = readValue('restaurant-general-whatsapp');
+    draft.googleReviewUrl = readValue('restaurant-general-review-url');
+    draft.googleMapsUrl = readValue('restaurant-general-maps-url');
+    draft.logoUrl = readValue('restaurant-general-logo-url');
+    draft.clientMenuUrl = readValue('restaurant-general-client-url');
+    draft.qrMenuUrl = readValue('restaurant-general-qr-url');
+
+    draft.activeLanguages = Array.from(document.querySelectorAll('[data-general-language]:checked'))
+      .map((input) => input.value);
+
+    if (!activeRestaurantData.identity || typeof activeRestaurantData.identity !== 'object') {
+      activeRestaurantData.identity = {};
+    }
+
+    if (!activeRestaurantData.links || typeof activeRestaurantData.links !== 'object') {
+      activeRestaurantData.links = {};
+    }
+
+    activeRestaurantData.identity.name = draft.restaurantName;
+    activeRestaurantData.identity.address = draft.address;
+    activeRestaurantData.identity.phone = draft.phone;
+    activeRestaurantData.identity.whatsapp = draft.whatsapp;
+    activeRestaurantData.identity.logoUrl = draft.logoUrl;
+
+    activeRestaurantData.links.reviewWriteUrl = draft.googleReviewUrl;
+    activeRestaurantData.links.directionsUrl = draft.googleMapsUrl;
+    activeRestaurantData.links.clientMenuUrl = draft.clientMenuUrl;
+    activeRestaurantData.links.qrMenuUrl = draft.qrMenuUrl;
+    activeRestaurantData.activeLanguages = [...draft.activeLanguages];
+
+    siteConfig.restaurantName = draft.restaurantName || siteConfig.restaurantName;
+    siteConfig.reviewWriteUrl = draft.googleReviewUrl || siteConfig.reviewWriteUrl;
+    siteConfig.clientMenuUrl = draft.clientMenuUrl || siteConfig.clientMenuUrl;
+    siteConfig.qrMenuUrl = draft.qrMenuUrl || siteConfig.qrMenuUrl;
+
+    showRestaurantToast(getRestaurantGeneralInfoText().saved, 'success');
+  }
+
+  function renderRestaurantGeneralInfoScreen() {
+    const overlay = document.getElementById('restaurant-info-modal');
+    if (!overlay) return;
+
+    const draft = ensureRestaurantGeneralInfoDraft();
+    if (!draft) return;
+
+    const text = getRestaurantGeneralInfoText();
+
+    const languageChoices = [
+      { code: 'fr', label: 'FR' },
+      { code: 'es', label: 'ES' },
+      { code: 'en', label: 'EN' },
+      { code: 'nl', label: 'NL' }
+    ];
+
+    overlay.innerHTML = `
+      <div class="restaurant-options-panel" role="dialog" aria-modal="true">
+        <div class="restaurant-options-header">
+          <div class="min-w-0">
+            <div class="inline-flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-gold/14 border border-gold/28 flex items-center justify-center shrink-0">
+                <i data-lucide="info" class="w-5 h-5 text-gold"></i>
+              </div>
+              <div>
+                <div class="font-display text-2xl font-bold text-cream leading-tight">${text.title}</div>
+                <div class="text-sm text-cream/58 mt-1">${text.subtitle}</div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" id="restaurant-info-close-btn" class="btn-action w-11 h-11 rounded-2xl border border-white/15 text-cream hover:bg-white/5 inline-flex items-center justify-center shrink-0">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="restaurant-options-body">
+          <div class="grid gap-4">
+            <div class="rounded-[22px] border border-gold/40 bg-[#1A1208] px-4 py-4 shadow-[0_12px_34px_rgba(0,0,0,0.28)]">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gold/18 border border-gold/40 flex items-center justify-center shrink-0">
+                  <i data-lucide="shield-check" class="w-5 h-5 text-gold"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-cream">${text.helpTitle}</div>
+                  <div class="text-sm text-cream/78 mt-1 leading-relaxed">${text.helpText}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-[24px] border border-gold/28 bg-white/[0.035] p-5">
+              <div class="grid md:grid-cols-2 gap-4">
+                <label class="grid gap-2">
+                  <span class="text-sm font-bold text-cream/78">${text.restaurantName}</span>
+                  <input id="restaurant-general-name" value="${draft.restaurantName || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2">
+                  <span class="text-sm font-bold text-cream/78">${text.phone}</span>
+                  <input id="restaurant-general-phone" value="${draft.phone || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2">
+                  <span class="text-sm font-bold text-cream/78">${text.whatsapp}</span>
+                  <input id="restaurant-general-whatsapp" value="${draft.whatsapp || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2">
+                  <span class="text-sm font-bold text-cream/78">${text.address}</span>
+                  <input id="restaurant-general-address" value="${draft.address || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2 md:col-span-2">
+                  <span class="text-sm font-bold text-cream/78">${text.googleReview}</span>
+                  <input id="restaurant-general-review-url" value="${draft.googleReviewUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2 md:col-span-2">
+                  <span class="text-sm font-bold text-cream/78">${text.googleMaps}</span>
+                  <input id="restaurant-general-maps-url" value="${draft.googleMapsUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2 md:col-span-2">
+                  <span class="text-sm font-bold text-cream/78">${text.logo}</span>
+                  <input id="restaurant-general-logo-url" value="${draft.logoUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2 md:col-span-2">
+                  <span class="text-sm font-bold text-cream/78">${text.clientMenuUrl}</span>
+                  <input id="restaurant-general-client-url" value="${draft.clientMenuUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <label class="grid gap-2 md:col-span-2">
+                  <span class="text-sm font-bold text-cream/78">${text.qrMenuUrl}</span>
+                  <input id="restaurant-general-qr-url" value="${draft.qrMenuUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                </label>
+
+                <div class="md:col-span-2 grid gap-2">
+                  <div class="text-sm font-bold text-cream/78">${text.languages}</div>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    ${languageChoices.map((language) => `
+                      <label class="restaurant-option-choice justify-start px-4">
+                        <input
+                          type="checkbox"
+                          value="${language.code}"
+                          data-general-language
+                          ${draft.activeLanguages.includes(language.code) ? 'checked' : ''}
+                        >
+                        <span>${language.label}</span>
+                      </label>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="restaurant-options-footer">
+          <button type="button" id="restaurant-info-back-btn" class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/15 text-sm font-semibold text-cream hover:bg-white/5 transition-all">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>${text.back}</span>
+          </button>
+
+          <button type="button" id="restaurant-general-save-btn" class="btn-action inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gold/45 bg-gold/15 text-sm font-bold text-cream hover:bg-gold/20 transition-all">
+            <i data-lucide="check" class="w-4 h-4 text-gold"></i>
+            <span>${text.save}</span>
+          </button>
+
+          <button type="button" id="restaurant-info-cancel-btn" class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gold/25 text-sm font-semibold text-gold hover:bg-gold/10 transition-all">
+            <i data-lucide="x" class="w-4 h-4 text-gold"></i>
+            <span>${text.close}</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('restaurant-info-close-btn')?.addEventListener('click', closeRestaurantInfoModal);
+    document.getElementById('restaurant-info-cancel-btn')?.addEventListener('click', closeRestaurantInfoModal);
+    document.getElementById('restaurant-info-back-btn')?.addEventListener('click', renderRestaurantInfoHome);
+    document.getElementById('restaurant-general-save-btn')?.addEventListener('click', saveRestaurantGeneralInfoDraft);
+
+    renderRestaurantInfoIcons();
+  }
+
   function renderRestaurantInfoHome() {
     const overlay = document.getElementById('restaurant-info-modal');
     if (!overlay) return;
@@ -10695,7 +11005,6 @@ function renderRequestRow(item, displayMode = 'active') {
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
                     <div class="font-display text-xl font-bold text-cream">${text.generalTitle}</div>
-                    <span class="rounded-full border border-white/12 bg-white/5 px-2 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-cream/55">${text.comingSoon}</span>
                   </div>
                   <div class="text-sm text-cream/52 mt-2 leading-relaxed">${text.generalText}</div>
                 </div>
@@ -10716,7 +11025,7 @@ function renderRequestRow(item, displayMode = 'active') {
     document.getElementById('restaurant-info-close-btn')?.addEventListener('click', closeRestaurantInfoModal);
     document.getElementById('restaurant-info-cancel-btn')?.addEventListener('click', closeRestaurantInfoModal);
     document.getElementById('restaurant-info-hours-btn')?.addEventListener('click', renderRestaurantHoursScreen);
-    document.getElementById('restaurant-info-general-btn')?.addEventListener('click', () => showTapCartaMessage(text.comingSoon));
+    document.getElementById('restaurant-info-general-btn')?.addEventListener('click', renderRestaurantGeneralInfoScreen);
 
     renderRestaurantInfoIcons();
   }
