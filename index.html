@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.3.2.14';
+        const APP_VERSION = 'V1.3.3.1';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10658,12 +10658,12 @@ function renderRequestRow(item, displayMode = 'active') {
             : 'Informations générales',
 
       subtitle: currentLang === 'es'
-        ? 'Actualice los datos principales visibles o útiles para sus clientes.'
+        ? 'Gestionar las coordenadas y los mensajes visibles para los clientes.'
         : currentLang === 'en'
-          ? 'Update the main details visible or useful to your customers.'
+          ? 'Manage contact details and short messages visible to customers.'
           : currentLang === 'nl'
-            ? 'Werk de belangrijkste gegevens bij die zichtbaar of nuttig zijn voor uw klanten.'
-            : 'Modifiez les informations principales visibles ou utiles pour vos clients.',
+            ? 'Beheer contactgegevens en korte berichten voor klanten.'
+            : 'Gérer les coordonnées et les messages courts visibles par les clients.',
 
       back: currentLang === 'es' ? 'Volver' : currentLang === 'en' ? 'Back' : currentLang === 'nl' ? 'Terug' : 'Retour',
       close: currentLang === 'es' ? 'Cerrar' : currentLang === 'en' ? 'Close' : currentLang === 'nl' ? 'Sluiten' : 'Fermer',
@@ -10677,33 +10677,82 @@ function renderRequestRow(item, displayMode = 'active') {
             ? 'Informatie opgeslagen.'
             : 'Informations enregistrées.',
 
-      restaurantName: currentLang === 'es' ? 'Nombre del restaurante' : currentLang === 'en' ? 'Restaurant name' : currentLang === 'nl' ? 'Naam van het restaurant' : 'Nom du restaurant',
-      address: currentLang === 'es' ? 'Dirección' : currentLang === 'en' ? 'Address' : currentLang === 'nl' ? 'Adres' : 'Adresse',
+      editableTitle: currentLang === 'es'
+        ? 'Modificable directamente'
+        : currentLang === 'en'
+          ? 'Directly editable'
+          : currentLang === 'nl'
+            ? 'Direct aanpasbaar'
+            : 'Modifiable directement',
+
+      editableText: currentLang === 'es'
+        ? 'Puede actualizar aquí sus coordenadas habituales y los mensajes cortos visibles en el menú cliente.'
+        : currentLang === 'en'
+          ? 'You can update your usual contact details and the short messages visible on the customer menu.'
+          : currentLang === 'nl'
+            ? 'U kunt hier uw gebruikelijke contactgegevens en korte berichten op het klantmenu aanpassen.'
+            : 'Vous pouvez modifier ici vos coordonnées courantes et les messages courts visibles sur le menu client.',
+
+      protectedTitle: currentLang === 'es'
+        ? 'Elementos protegidos'
+        : currentLang === 'en'
+          ? 'Protected elements'
+          : currentLang === 'nl'
+            ? 'Beschermde elementen'
+            : 'Éléments protégés',
+
+      protectedText: currentLang === 'es'
+        ? 'Los cambios de identidad o técnicos deben pasar por TapCarta para proteger su QR, su enlace público, su ficha restaurante y su visibilidad online. Toda modificación técnica o de identidad conlleva gastos de reactivación de 30 € sin IVA.'
+        : currentLang === 'en'
+          ? 'Technical or identity changes must go through TapCarta to protect your QR code, public link, restaurant profile and online visibility. Any technical or identity modification generates a reactivation fee of €30 excluding VAT.'
+          : currentLang === 'nl'
+            ? 'Technische wijzigingen of identiteitswijzigingen moeten via TapCarta verlopen om uw QR-code, publieke link, restaurantfiche en online zichtbaarheid te beschermen. Elke technische of identiteitswijziging brengt heractiveringskosten van €30 excl. btw met zich mee.'
+            : 'Les changements techniques ou d’identité doivent passer par TapCarta afin de protéger votre QR, votre lien public, votre fiche restaurant et votre visibilité en ligne. Toute modification technique ou d’identité entraîne des frais de réactivation de 30 € HTVA.',
+
       phone: currentLang === 'es' ? 'Teléfono' : currentLang === 'en' ? 'Phone' : currentLang === 'nl' ? 'Telefoon' : 'Téléphone',
       whatsapp: currentLang === 'es' ? 'WhatsApp' : currentLang === 'en' ? 'WhatsApp' : currentLang === 'nl' ? 'WhatsApp' : 'WhatsApp',
-      googleReview: currentLang === 'es' ? 'Enlace de reseñas Google' : currentLang === 'en' ? 'Google review link' : currentLang === 'nl' ? 'Google reviewlink' : 'Lien avis Google',
-      googleMaps: currentLang === 'es' ? 'Enlace Google Maps' : currentLang === 'en' ? 'Google Maps link' : currentLang === 'nl' ? 'Google Maps-link' : 'Lien Google Maps',
-      logo: currentLang === 'es' ? 'Logo / imagen' : currentLang === 'en' ? 'Logo / image' : currentLang === 'nl' ? 'Logo / afbeelding' : 'Logo / image',
-      clientMenuUrl: currentLang === 'es' ? 'Enlace del menú cliente' : currentLang === 'en' ? 'Customer menu link' : currentLang === 'nl' ? 'Link naar klantmenu' : 'Lien du menu client',
-      qrMenuUrl: currentLang === 'es' ? 'Enlace QR' : currentLang === 'en' ? 'QR link' : currentLang === 'nl' ? 'QR-link' : 'Lien QR',
 
-      languages: currentLang === 'es' ? 'Idiomas visibles' : currentLang === 'en' ? 'Visible languages' : currentLang === 'nl' ? 'Zichtbare talen' : 'Langues visibles',
-
-      helpTitle: currentLang === 'es'
-        ? 'Estos datos preparan la ficha pública del restaurante'
+      customerMessagesTitle: currentLang === 'es'
+        ? 'Mensajes visibles en el menú cliente'
         : currentLang === 'en'
-          ? 'These details prepare the restaurant public profile'
+          ? 'Messages visible on the customer menu'
           : currentLang === 'nl'
-            ? 'Deze gegevens bereiden de publieke restaurantfiche voor'
-            : 'Ces informations préparent la fiche publique du restaurant',
+            ? 'Berichten zichtbaar op het klantmenu'
+            : 'Messages visibles sur le menu client',
 
-      helpText: currentLang === 'es'
-        ? 'Por ahora se guardan en esta sesión. La conexión Supabase se hará después en un bloque separado.'
+      customerMessagesHelp: currentLang === 'es'
+        ? 'Estos mensajes aparecen como bloques cortos en el menú cliente. Para preservar el diseño TapCarta, cada mensaje está limitado a 120 caracteres.'
         : currentLang === 'en'
-          ? 'For now, they are saved in this session. Supabase connection will be handled later in a separate step.'
+          ? 'These messages appear as short blocks on the customer menu. To preserve the TapCarta design, each message is limited to 120 characters.'
           : currentLang === 'nl'
-            ? 'Voorlopig worden ze in deze sessie bewaard. De Supabase-koppeling komt later apart.'
-            : 'Pour l’instant, elles sont gardées dans cette session. Le branchement Supabase sera fait ensuite dans un bloc séparé.'
+            ? 'Deze berichten verschijnen als korte blokken op het klantmenu. Om het TapCarta-design te behouden, is elk bericht beperkt tot 120 tekens.'
+            : 'Ces messages apparaissent sous forme de blocs courts dans le menu client. Pour préserver la présentation TapCarta, chaque message est limité à 120 caractères.',
+
+      messageLabel: currentLang === 'es' ? 'Mensaje' : currentLang === 'en' ? 'Message' : currentLang === 'nl' ? 'Bericht' : 'Message',
+      active: currentLang === 'es' ? 'Activo' : currentLang === 'en' ? 'Active' : currentLang === 'nl' ? 'Actief' : 'Actif',
+      hidden: currentLang === 'es' ? 'Oculto' : currentLang === 'en' ? 'Hidden' : currentLang === 'nl' ? 'Verborgen' : 'Masqué',
+      characters: currentLang === 'es' ? 'caracteres' : currentLang === 'en' ? 'characters' : currentLang === 'nl' ? 'tekens' : 'caractères',
+
+      protectedRestaurantName: currentLang === 'es' ? 'Nombre del restaurante' : currentLang === 'en' ? 'Restaurant name' : currentLang === 'nl' ? 'Naam van het restaurant' : 'Nom du restaurant',
+      protectedAddress: currentLang === 'es' ? 'Dirección' : currentLang === 'en' ? 'Address' : currentLang === 'nl' ? 'Adres' : 'Adresse',
+      protectedClientMenu: currentLang === 'es' ? 'Menú cliente' : currentLang === 'en' ? 'Customer menu' : currentLang === 'nl' ? 'Klantmenu' : 'Menu client',
+      protectedQr: currentLang === 'es' ? 'QR TapCarta' : currentLang === 'en' ? 'TapCarta QR' : currentLang === 'nl' ? 'TapCarta QR' : 'QR TapCarta',
+      protectedGoogleMaps: currentLang === 'es' ? 'Google Maps / ubicación' : currentLang === 'en' ? 'Google Maps / location' : currentLang === 'nl' ? 'Google Maps / locatie' : 'Google Maps / localisation',
+      protectedGoogleReviews: currentLang === 'es' ? 'Reseñas Google' : currentLang === 'en' ? 'Google reviews' : currentLang === 'nl' ? 'Google reviews' : 'Avis Google',
+      protectedLogo: currentLang === 'es' ? 'Logo / imagen' : currentLang === 'en' ? 'Logo / image' : currentLang === 'nl' ? 'Logo / afbeelding' : 'Logo / image',
+      protectedLanguages: currentLang === 'es' ? 'Idiomas activos' : currentLang === 'en' ? 'Active languages' : currentLang === 'nl' ? 'Actieve talen' : 'Langues actives',
+
+      copy: currentLang === 'es' ? 'Copiar' : currentLang === 'en' ? 'Copy' : currentLang === 'nl' ? 'Kopiëren' : 'Copier',
+      copied: currentLang === 'es' ? 'Copiado.' : currentLang === 'en' ? 'Copied.' : currentLang === 'nl' ? 'Gekopieerd.' : 'Copié.',
+      requestChange: currentLang === 'es' ? 'Solicitar modificación' : currentLang === 'en' ? 'Request change' : currentLang === 'nl' ? 'Wijziging aanvragen' : 'Demander une modification',
+
+      requestMessage: currentLang === 'es'
+        ? 'Esta información está protegida. Las modificaciones técnicas o de identidad conllevan gastos de reactivación de 30 € sin IVA.'
+        : currentLang === 'en'
+          ? 'This information is protected. Technical or identity changes generate a reactivation fee of €30 excluding VAT.'
+          : currentLang === 'nl'
+            ? 'Deze informatie is beschermd. Technische of identiteitswijzigingen brengen heractiveringskosten van €30 excl. btw met zich mee.'
+            : 'Cette information est protégée. Les modifications techniques ou d’identité entraînent des frais de réactivation de 30 € HTVA.'
     };
   }
 
@@ -10715,18 +10764,10 @@ function renderRequestRow(item, displayMode = 'active') {
     }
 
     const draft = activeRestaurantData.restaurantGeneralInfoDraft;
-
     const identity = activeRestaurantData.identity || {};
     const links = activeRestaurantData.links || {};
     const technical = activeRestaurantData.technical || {};
-
-    if (typeof draft.restaurantName !== 'string') {
-      draft.restaurantName = identity.name || activeRestaurantData.name || siteConfig.restaurantName || '';
-    }
-
-    if (typeof draft.address !== 'string') {
-      draft.address = identity.address || activeRestaurantData.address || siteConfig.address || '';
-    }
+    const fallbackText = translations?.fr || translations?.[currentLang] || {};
 
     if (typeof draft.phone !== 'string') {
       draft.phone = identity.phone || activeRestaurantData.phone || siteConfig.phone || '';
@@ -10736,31 +10777,50 @@ function renderRequestRow(item, displayMode = 'active') {
       draft.whatsapp = identity.whatsapp || activeRestaurantData.whatsapp || siteConfig.whatsapp || '';
     }
 
-    if (typeof draft.googleReviewUrl !== 'string') {
-      draft.googleReviewUrl = technical.reviewWriteUrl || links.reviewWriteUrl || siteConfig.reviewWriteUrl || '';
+    const existingMessages =
+      Array.isArray(activeRestaurantData.customerMessages)
+        ? activeRestaurantData.customerMessages
+        : Array.isArray(activeRestaurantData.menu?.customerMessages)
+          ? activeRestaurantData.menu.customerMessages
+          : null;
+
+    if (!Array.isArray(draft.customerMessages)) {
+      draft.customerMessages = existingMessages || [
+        {
+          active: true,
+          text: fallbackText.noticeAllFries || 'Tous nos plats sont accompagnés de frites.'
+        },
+        {
+          active: false,
+          text: fallbackText.friesInfo || 'Nos frites sont cuites dans de la graisse de bœuf selon la tradition belge.'
+        },
+        {
+          active: false,
+          text: fallbackText.noticeTakeaway || 'Tous nos plats sont disponibles à emporter.'
+        }
+      ];
     }
 
-    if (typeof draft.googleMapsUrl !== 'string') {
-      draft.googleMapsUrl = technical.directionsUrl || links.directionsUrl || siteConfig.directionsUrl || '';
-    }
+    draft.customerMessages = [0, 1, 2].map((index) => {
+      const message = draft.customerMessages[index] || {};
+      return {
+        active: Boolean(message.active),
+        text: typeof message.text === 'string' ? message.text.slice(0, 120) : ''
+      };
+    });
 
-    if (typeof draft.logoUrl !== 'string') {
-      draft.logoUrl = identity.logoUrl || activeRestaurantData.logoUrl || siteConfig.appLogoUrl || '';
-    }
-
-    if (typeof draft.clientMenuUrl !== 'string') {
-      draft.clientMenuUrl = technical.clientMenuUrl || links.clientMenuUrl || siteConfig.clientMenuUrl || '';
-    }
-
-    if (typeof draft.qrMenuUrl !== 'string') {
-      draft.qrMenuUrl = technical.qrMenuUrl || links.qrMenuUrl || siteConfig.qrMenuUrl || '';
-    }
-
-    if (!Array.isArray(draft.activeLanguages)) {
-      draft.activeLanguages = Array.isArray(activeRestaurantData.activeLanguages)
-        ? [...activeRestaurantData.activeLanguages]
-        : ['fr', 'es', 'en', 'nl'];
-    }
+    draft.protectedInfo = {
+      restaurantName: identity.name || activeRestaurantData.name || siteConfig.restaurantName || '',
+      address: identity.address || activeRestaurantData.address || siteConfig.address || '',
+      clientMenuUrl: technical.clientMenuUrl || links.clientMenuUrl || siteConfig.clientMenuUrl || '',
+      qrMenuUrl: technical.qrMenuUrl || links.qrMenuUrl || siteConfig.qrMenuUrl || '',
+      googleMapsUrl: technical.directionsUrl || links.directionsUrl || siteConfig.directionsUrl || '',
+      googleReviewUrl: technical.reviewWriteUrl || links.reviewWriteUrl || siteConfig.reviewWriteUrl || '',
+      logoUrl: identity.logoUrl || activeRestaurantData.logoUrl || siteConfig.appLogoUrl || '',
+      activeLanguages: Array.isArray(activeRestaurantData.activeLanguages)
+        ? activeRestaurantData.activeLanguages.join(' · ').toUpperCase()
+        : 'FR · ES · EN · NL'
+    };
 
     return draft;
   }
@@ -10771,43 +10831,26 @@ function renderRequestRow(item, displayMode = 'active') {
 
     const readValue = (id) => document.getElementById(id)?.value?.trim() || '';
 
-    draft.restaurantName = readValue('restaurant-general-name');
-    draft.address = readValue('restaurant-general-address');
     draft.phone = readValue('restaurant-general-phone');
     draft.whatsapp = readValue('restaurant-general-whatsapp');
-    draft.googleReviewUrl = readValue('restaurant-general-review-url');
-    draft.googleMapsUrl = readValue('restaurant-general-maps-url');
-    draft.logoUrl = readValue('restaurant-general-logo-url');
-    draft.clientMenuUrl = readValue('restaurant-general-client-url');
-    draft.qrMenuUrl = readValue('restaurant-general-qr-url');
 
-    draft.activeLanguages = Array.from(document.querySelectorAll('[data-general-language]:checked'))
-      .map((input) => input.value);
+    draft.customerMessages = [0, 1, 2].map((index) => {
+      const textValue = readValue(`restaurant-general-message-${index}`).slice(0, 120);
+      const activeValue = Boolean(document.querySelector(`[data-general-message-active="${index}"]`)?.checked);
+
+      return {
+        active: activeValue,
+        text: textValue
+      };
+    });
 
     if (!activeRestaurantData.identity || typeof activeRestaurantData.identity !== 'object') {
       activeRestaurantData.identity = {};
     }
 
-    if (!activeRestaurantData.links || typeof activeRestaurantData.links !== 'object') {
-      activeRestaurantData.links = {};
-    }
-
-    activeRestaurantData.identity.name = draft.restaurantName;
-    activeRestaurantData.identity.address = draft.address;
     activeRestaurantData.identity.phone = draft.phone;
     activeRestaurantData.identity.whatsapp = draft.whatsapp;
-    activeRestaurantData.identity.logoUrl = draft.logoUrl;
-
-    activeRestaurantData.links.reviewWriteUrl = draft.googleReviewUrl;
-    activeRestaurantData.links.directionsUrl = draft.googleMapsUrl;
-    activeRestaurantData.links.clientMenuUrl = draft.clientMenuUrl;
-    activeRestaurantData.links.qrMenuUrl = draft.qrMenuUrl;
-    activeRestaurantData.activeLanguages = [...draft.activeLanguages];
-
-    siteConfig.restaurantName = draft.restaurantName || siteConfig.restaurantName;
-    siteConfig.reviewWriteUrl = draft.googleReviewUrl || siteConfig.reviewWriteUrl;
-    siteConfig.clientMenuUrl = draft.clientMenuUrl || siteConfig.clientMenuUrl;
-    siteConfig.qrMenuUrl = draft.qrMenuUrl || siteConfig.qrMenuUrl;
+    activeRestaurantData.customerMessages = draft.customerMessages.map((message) => ({ ...message }));
 
     showRestaurantToast(getRestaurantGeneralInfoText().saved, 'success');
   }
@@ -10821,11 +10864,22 @@ function renderRequestRow(item, displayMode = 'active') {
 
     const text = getRestaurantGeneralInfoText();
 
-    const languageChoices = [
-      { code: 'fr', label: 'FR' },
-      { code: 'es', label: 'ES' },
-      { code: 'en', label: 'EN' },
-      { code: 'nl', label: 'NL' }
+    const escapeHtml = (value) => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    const protectedRows = [
+      { key: 'restaurantName', icon: 'store', label: text.protectedRestaurantName, value: draft.protectedInfo.restaurantName, request: true },
+      { key: 'address', icon: 'map-pin', label: text.protectedAddress, value: draft.protectedInfo.address, request: true },
+      { key: 'clientMenuUrl', icon: 'external-link', label: text.protectedClientMenu, value: draft.protectedInfo.clientMenuUrl, copy: true, request: true },
+      { key: 'qrMenuUrl', icon: 'qr-code', label: text.protectedQr, value: draft.protectedInfo.qrMenuUrl, copy: true, request: true },
+      { key: 'googleMapsUrl', icon: 'navigation', label: text.protectedGoogleMaps, value: draft.protectedInfo.googleMapsUrl, copy: true, request: true },
+      { key: 'googleReviewUrl', icon: 'star', label: text.protectedGoogleReviews, value: draft.protectedInfo.googleReviewUrl, copy: true, request: true },
+      { key: 'logoUrl', icon: 'image', label: text.protectedLogo, value: draft.protectedInfo.logoUrl, copy: true, request: true },
+      { key: 'activeLanguages', icon: 'languages', label: text.protectedLanguages, value: draft.protectedInfo.activeLanguages, request: true }
     ];
 
     overlay.innerHTML = `
@@ -10838,7 +10892,7 @@ function renderRequestRow(item, displayMode = 'active') {
               </div>
               <div>
                 <div class="font-display text-2xl font-bold text-cream leading-tight">${text.title}</div>
-                <div class="text-sm text-cream/58 mt-1">${text.subtitle}</div>
+                <div class="text-sm text-cream/62 mt-1">${text.subtitle}</div>
               </div>
             </div>
           </div>
@@ -10849,84 +10903,145 @@ function renderRequestRow(item, displayMode = 'active') {
         </div>
 
         <div class="restaurant-options-body">
-          <div class="grid gap-4">
-            <div class="rounded-[22px] border border-gold/40 bg-[#1A1208] px-4 py-4 shadow-[0_12px_34px_rgba(0,0,0,0.28)]">
+          <div class="grid gap-5">
+
+            <div class="rounded-[24px] border border-gold/28 bg-gold/[0.07] p-5">
               <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-gold/18 border border-gold/40 flex items-center justify-center shrink-0">
+                <div class="w-10 h-10 rounded-2xl bg-gold/16 border border-gold/35 flex items-center justify-center shrink-0">
                   <i data-lucide="shield-check" class="w-5 h-5 text-gold"></i>
                 </div>
-                <div class="min-w-0">
-                  <div class="font-bold text-cream">${text.helpTitle}</div>
-                  <div class="text-sm text-cream/78 mt-1 leading-relaxed">${text.helpText}</div>
+                <div>
+                  <div class="font-bold text-cream">${text.protectedTitle}</div>
+                  <div class="text-sm text-cream/78 mt-1 leading-relaxed">${text.protectedText}</div>
                 </div>
               </div>
             </div>
 
-            <div class="rounded-[24px] border border-gold/28 bg-white/[0.035] p-5">
+            <section class="rounded-[26px] border border-emerald-400/20 bg-emerald-500/[0.045] p-5">
+              <div class="flex items-start gap-3 mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-400/10 border border-emerald-400/25 flex items-center justify-center shrink-0">
+                  <i data-lucide="edit-3" class="w-5 h-5 text-emerald-300"></i>
+                </div>
+                <div>
+                  <div class="font-display text-xl font-bold text-cream">${text.editableTitle}</div>
+                  <div class="text-sm text-cream/68 mt-1">${text.editableText}</div>
+                </div>
+              </div>
+
               <div class="grid md:grid-cols-2 gap-4">
                 <label class="grid gap-2">
-                  <span class="text-sm font-bold text-cream/78">${text.restaurantName}</span>
-                  <input id="restaurant-general-name" value="${draft.restaurantName || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
-                </label>
-
-                <label class="grid gap-2">
                   <span class="text-sm font-bold text-cream/78">${text.phone}</span>
-                  <input id="restaurant-general-phone" value="${draft.phone || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                  <input id="restaurant-general-phone" value="${escapeHtml(draft.phone)}" class="w-full rounded-2xl border border-white/12 bg-black/28 px-4 py-3 text-cream outline-none focus:border-gold/55" />
                 </label>
 
                 <label class="grid gap-2">
                   <span class="text-sm font-bold text-cream/78">${text.whatsapp}</span>
-                  <input id="restaurant-general-whatsapp" value="${draft.whatsapp || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
+                  <input id="restaurant-general-whatsapp" value="${escapeHtml(draft.whatsapp)}" class="w-full rounded-2xl border border-white/12 bg-black/28 px-4 py-3 text-cream outline-none focus:border-gold/55" />
                 </label>
+              </div>
+            </section>
 
-                <label class="grid gap-2">
-                  <span class="text-sm font-bold text-cream/78">${text.address}</span>
-                  <input id="restaurant-general-address" value="${draft.address || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
-                </label>
-
-                <label class="grid gap-2 md:col-span-2">
-                  <span class="text-sm font-bold text-cream/78">${text.googleReview}</span>
-                  <input id="restaurant-general-review-url" value="${draft.googleReviewUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
-                </label>
-
-                <label class="grid gap-2 md:col-span-2">
-                  <span class="text-sm font-bold text-cream/78">${text.googleMaps}</span>
-                  <input id="restaurant-general-maps-url" value="${draft.googleMapsUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
-                </label>
-
-                <label class="grid gap-2 md:col-span-2">
-                  <span class="text-sm font-bold text-cream/78">${text.logo}</span>
-                  <input id="restaurant-general-logo-url" value="${draft.logoUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
-                </label>
-
-                <label class="grid gap-2 md:col-span-2">
-                  <span class="text-sm font-bold text-cream/78">${text.clientMenuUrl}</span>
-                  <input id="restaurant-general-client-url" value="${draft.clientMenuUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
-                </label>
-
-                <label class="grid gap-2 md:col-span-2">
-                  <span class="text-sm font-bold text-cream/78">${text.qrMenuUrl}</span>
-                  <input id="restaurant-general-qr-url" value="${draft.qrMenuUrl || ''}" class="w-full rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-cream outline-none focus:border-gold/55" />
-                </label>
-
-                <div class="md:col-span-2 grid gap-2">
-                  <div class="text-sm font-bold text-cream/78">${text.languages}</div>
-                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    ${languageChoices.map((language) => `
-                      <label class="restaurant-option-choice justify-start px-4">
-                        <input
-                          type="checkbox"
-                          value="${language.code}"
-                          data-general-language
-                          ${draft.activeLanguages.includes(language.code) ? 'checked' : ''}
-                        >
-                        <span>${language.label}</span>
-                      </label>
-                    `).join('')}
-                  </div>
+            <section class="rounded-[26px] border border-gold/22 bg-white/[0.035] p-5">
+              <div class="flex items-start gap-3 mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-gold/12 border border-gold/25 flex items-center justify-center shrink-0">
+                  <i data-lucide="message-square-text" class="w-5 h-5 text-gold"></i>
+                </div>
+                <div>
+                  <div class="font-display text-xl font-bold text-cream">${text.customerMessagesTitle}</div>
+                  <div class="text-sm text-cream/68 mt-1">${text.customerMessagesHelp}</div>
                 </div>
               </div>
-            </div>
+
+              <div class="grid gap-4">
+                ${draft.customerMessages.map((message, index) => `
+                  <div class="rounded-[22px] border border-white/10 bg-black/22 p-4">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                      <div class="text-sm font-bold text-cream/82">${text.messageLabel} ${index + 1}</div>
+                      <label class="inline-flex items-center gap-2 rounded-full border ${message.active ? 'border-emerald-400/28 bg-emerald-500/10 text-emerald-300' : 'border-white/12 bg-white/5 text-cream/60'} px-3 py-2 text-xs font-bold">
+                        <input
+                          type="checkbox"
+                          data-general-message-active="${index}"
+                          ${message.active ? 'checked' : ''}
+                          class="accent-yellow-400"
+                        >
+                        <span>${message.active ? text.active : text.hidden}</span>
+                      </label>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 rounded-2xl border border-gold/22 bg-gold/8 flex items-center justify-center shrink-0 mt-1">
+                        <i data-lucide="info" class="w-5 h-5 text-gold"></i>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <textarea
+                          id="restaurant-general-message-${index}"
+                          maxlength="120"
+                          rows="2"
+                          class="w-full rounded-2xl border border-white/12 bg-black/28 px-4 py-3 text-cream outline-none focus:border-gold/55 resize-none"
+                        >${escapeHtml(message.text)}</textarea>
+                        <div class="mt-2 text-xs text-cream/48 text-right">
+                          <span data-message-counter="${index}">${escapeHtml(message.text).length}</span>/120 ${text.characters}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
+
+            <section class="rounded-[26px] border border-gold/22 bg-white/[0.025] p-5">
+              <div class="flex items-start gap-3 mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-gold/12 border border-gold/25 flex items-center justify-center shrink-0">
+                  <i data-lucide="lock" class="w-5 h-5 text-gold"></i>
+                </div>
+                <div>
+                  <div class="font-display text-xl font-bold text-cream">${text.protectedTitle}</div>
+                  <div class="text-sm text-cream/68 mt-1">${text.protectedText}</div>
+                </div>
+              </div>
+
+              <div class="grid gap-3">
+                ${protectedRows.map((row) => `
+                  <div class="rounded-[20px] border border-white/10 bg-black/20 px-4 py-4">
+                    <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                      <div class="flex items-start gap-3 min-w-0 flex-1">
+                        <div class="w-10 h-10 rounded-2xl border border-gold/18 bg-gold/8 flex items-center justify-center shrink-0">
+                          <i data-lucide="${row.icon}" class="w-5 h-5 text-gold"></i>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="text-sm font-bold text-cream">${row.label}</div>
+                          <div class="text-sm text-cream/55 mt-1 truncate">${escapeHtml(row.value || '—')}</div>
+                        </div>
+                      </div>
+
+                      <div class="flex flex-wrap gap-2 md:justify-end">
+                        ${row.copy && row.value ? `
+                          <button
+                            type="button"
+                            data-general-copy="${row.key}"
+                            class="btn-action inline-flex items-center justify-center gap-2 rounded-xl border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/12"
+                          >
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>${text.copy}</span>
+                          </button>
+                        ` : ''}
+
+                        ${row.request ? `
+                          <button
+                            type="button"
+                            data-general-request="${row.key}"
+                            class="btn-action inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-bold text-cream/78 hover:bg-white/8"
+                          >
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            <span>${text.requestChange}</span>
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
           </div>
         </div>
 
@@ -10954,8 +11069,47 @@ function renderRequestRow(item, displayMode = 'active') {
     document.getElementById('restaurant-info-back-btn')?.addEventListener('click', renderRestaurantInfoHome);
     document.getElementById('restaurant-general-save-btn')?.addEventListener('click', saveRestaurantGeneralInfoDraft);
 
+    document.querySelectorAll('[data-general-copy]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const key = button.dataset.generalCopy;
+        const value = draft.protectedInfo?.[key] || '';
+
+        if (!value) return;
+
+        try {
+          await navigator.clipboard.writeText(value);
+          showRestaurantToast(text.copied, 'success');
+        } catch (error) {
+          showTapCartaMessage(value);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-general-request]').forEach((button) => {
+      button.addEventListener('click', () => {
+        showTapCartaMessage(text.requestMessage);
+      });
+    });
+
+    document.querySelectorAll('[id^="restaurant-general-message-"]').forEach((textarea) => {
+      textarea.addEventListener('input', () => {
+        const index = textarea.id.replace('restaurant-general-message-', '');
+        const counter = document.querySelector(`[data-message-counter="${index}"]`);
+        if (counter) {
+          counter.textContent = String(textarea.value.length);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-general-message-active]').forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        renderRestaurantGeneralInfoScreen();
+      });
+    });
+
     renderRestaurantInfoIcons();
   }
+
 
   function renderRestaurantInfoHome() {
     const overlay = document.getElementById('restaurant-info-modal');
