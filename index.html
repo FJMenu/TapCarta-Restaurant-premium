@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.1.3';
+        const APP_VERSION = 'V1.4.1.4';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10374,6 +10374,13 @@ function renderRequestRow(item, displayMode = 'active') {
       useGeneral: currentLang === 'es' ? 'Usar horarios generales' : currentLang === 'en' ? 'Use general hours' : currentLang === 'nl' ? 'Algemene uren gebruiken' : 'Utiliser les horaires généraux',
       specific: currentLang === 'es' ? 'Horarios específicos' : currentLang === 'en' ? 'Specific hours' : currentLang === 'nl' ? 'Specifieke uren' : 'Horaires spécifiques',
       delay: currentLang === 'es' ? 'Plazo mínimo' : currentLang === 'en' ? 'Minimum delay' : currentLang === 'nl' ? 'Minimale wachttijd' : 'Délai minimum',
+      delayExplanation: currentLang === 'es'
+        ? 'El plazo mínimo es el tiempo entre la solicitud del cliente y el primer horario que TapCarta puede proponer, según los horarios configurados por el restaurante.'
+        : currentLang === 'en'
+          ? 'The minimum delay is the time between the customer request and the first time slot TapCarta can offer, based on the opening hours configured by the restaurant.'
+          : currentLang === 'nl'
+            ? 'De minimale wachttijd is de tijd tussen de aanvraag van de klant en het eerste tijdslot dat TapCarta kan voorstellen, op basis van de ingestelde openingsuren van het restaurant.'
+            : 'Le délai minimum est le temps entre la demande du client et le premier créneau que TapCarta peut proposer, selon les horaires configurés par le restaurant.',
       autoDelay: currentLang === 'es' ? 'Automático recomendado — 30 min' : currentLang === 'en' ? 'Recommended automatic — 30 min' : currentLang === 'nl' ? 'Aanbevolen automatisch — 30 min' : 'Automatique recommandé — 30 min',
       customDelay: currentLang === 'es' ? 'Definir yo mismo' : currentLang === 'en' ? 'Set myself' : currentLang === 'nl' ? 'Zelf instellen' : 'Définir moi-même'
     };
@@ -10625,6 +10632,10 @@ function renderRequestRow(item, displayMode = 'active') {
         </div>
 
         <div class="grid gap-2">
+          <div class="rounded-2xl border border-gold/18 bg-gold/[0.055] px-4 py-3 text-sm leading-relaxed text-cream/82">
+            ${text.delayExplanation}
+          </div>
+
           <label class="restaurant-option-choice justify-start px-4">
             <input type="radio" name="${moduleKey}-delay" value="auto" ${moduleData.delayMode === 'auto' ? 'checked' : ''}>
             <span>${text.autoDelay}</span>
