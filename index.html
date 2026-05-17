@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.1.10';
+        const APP_VERSION = 'V1.4.2.1';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -5706,6 +5706,77 @@ function getActiveRestaurantIdForManualRequest() {
   );
 }
 
+function getActiveRestaurantSettingsId() {
+  return (
+    activeRestaurantData?.identity?.id ||
+    activeRestaurantData?.id ||
+    siteConfig?.identity?.id ||
+    siteConfig?.restaurantId ||
+    ''
+  );
+}
+
+function normalizeCustomerMessagesForSettings(messages) {
+  if (!Array.isArray(messages)) return [];
+
+  return messages.slice(0, 3).map((message) => ({
+    active: Boolean(message?.active),
+    text: typeof message?.text === 'string'
+      ? message.text.trim().slice(0, 120)
+      : ''
+  }));
+}
+
+function normalizeRestaurantModulesForSettings(modules) {
+  const source = modules && typeof modules === 'object' ? modules : {};
+
+  const normalizeMainStatus = (value) =>
+    ['active', 'standby', 'hidden'].includes(value) ? value : 'active';
+
+  const normalizeQuickStatus = (value) =>
+    value === 'hidden' ? 'hidden' : 'active';
+
+  return {
+    booking: normalizeMainStatus(source.booking),
+    ordering: normalizeMainStatus(source.ordering),
+    whatsapp: normalizeQuickStatus(source.whatsapp),
+    phone: normalizeQuickStatus(source.phone),
+    directions: normalizeQuickStatus(source.directions),
+    googleReviews: normalizeQuickStatus(source.googleReviews)
+  };
+}
+
+async function saveRestaurantSettingsToSupabase(partialSettings = {}) {
+  const restaurantId = getActiveRestaurantSettingsId();
+
+  if (!restaurantId) {
+    console.warn('TapCarta Resto: impossible de sauvegarder restaurant_settings, restaurant_id manquant.');
+    return false;
+  }
+
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+    console.warn('TapCarta Resto: Supabase non disponible pour restaurant_settings.');
+    return false;
+  }
+
+  const payload = {
+    restaurant_id: restaurantId,
+    updated_at: new Date().toISOString(),
+    ...partialSettings
+  };
+
+  const { error } = await supabaseClient
+    .from('restaurant_settings')
+    .upsert(payload, { onConflict: 'restaurant_id' });
+
+  if (error) {
+    console.warn('TapCarta Resto: erreur sauvegarde restaurant_settings.', error);
+    return false;
+  }
+
+  return true;
+}
+
 function getManualRequestTodayValue() {
   const now = new Date();
   const year = now.getFullYear();
@@ -10327,7 +10398,7 @@ function renderRequestRow(item, displayMode = 'active') {
     }
   }
 
-  function saveRestaurantOptionsModal() {
+  async function saveRestaurantOptionsModal() {
     setRestaurantOptionStatus('booking', readRestaurantOptionChoice('booking'));
     setRestaurantOptionStatus('ordering', readRestaurantOptionChoice('ordering'));
     setRestaurantOptionStatus('whatsapp', readRestaurantOptionChoice('whatsapp'));
@@ -10336,6 +10407,10 @@ function renderRequestRow(item, displayMode = 'active') {
     setRestaurantOptionStatus('googleReviews', readRestaurantOptionChoice('googleReviews'));
 
     const text = getRestaurantOptionsText();
+
+    await saveRestaurantSettingsToSupabase({
+      modules_json: normalizeRestaurantModulesForSettings(activeRestaurantData.modules)
+    });
 
     showTapCartaMessage(text.saved);
     closeRestaurantOptionsModal();
@@ -11112,7 +11187,7 @@ function renderRequestRow(item, displayMode = 'active') {
     return draft;
   }
 
-  function saveRestaurantGeneralInfoDraft() {
+  async function saveRestaurantGeneralInfoDraft() {
     const draft = ensureRestaurantGeneralInfoDraft();
     if (!draft) return;
 
@@ -11138,6 +11213,14 @@ function renderRequestRow(item, displayMode = 'active') {
     activeRestaurantData.identity.phone = draft.phone;
     activeRestaurantData.identity.whatsapp = draft.whatsapp;
     activeRestaurantData.customerMessages = draft.customerMessages.map((message) => ({ ...message }));
+
+    await saveRestaurantSettingsToSupabase({
+      contact_json: {
+        phone: draft.phone,
+        whatsapp: draft.whatsapp
+      },
+      customer_messages_json: normalizeCustomerMessagesForSettings(draft.customerMessages)
+    });
 
     showRestaurantToast(getRestaurantGeneralInfoText().saved, 'success');
   }
