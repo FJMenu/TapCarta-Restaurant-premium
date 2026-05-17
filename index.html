@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.1.1';
+        const APP_VERSION = 'V1.4.1.2';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -13259,7 +13259,14 @@ if (dishFinishBtn) {
     const menuEditorSection = document.getElementById('restaurant-menu-editor-section');
     const isMenuEditorOpen = !!menuEditorSection && !menuEditorSection.classList.contains('hidden');
 
-    if (!isMenuEditorOpen) {
+    const isRestaurantModalOpen =
+      !!document.getElementById('restaurant-info-modal') ||
+      !!document.getElementById('restaurant-options-modal') ||
+      !!document.getElementById('restaurant-manual-order-modal') ||
+      !!document.getElementById('restaurant-manual-booking-modal') ||
+      !!document.getElementById('dish-editor-screen');
+
+    if (!isMenuEditorOpen && !isRestaurantModalOpen) {
       renderMenu();
     }
 
