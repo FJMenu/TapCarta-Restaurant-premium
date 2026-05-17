@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.1.5';
+        const APP_VERSION = 'V1.4.1.6';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -1317,6 +1317,62 @@
       border-color: rgba(242, 199, 68, 0.62) !important;
       box-shadow: 0 0 0 3px rgba(242, 199, 68, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05);
       outline: none;
+    }
+
+    #restaurant-info-modal,
+    #restaurant-info-modal * {
+      max-width: 100%;
+    }
+
+    #restaurant-info-modal .restaurant-options-panel,
+    #restaurant-info-modal .restaurant-options-header,
+    #restaurant-info-modal .restaurant-options-body,
+    #restaurant-info-modal .restaurant-options-footer {
+      overflow-x: hidden;
+    }
+
+    #restaurant-info-modal .truncate {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #restaurant-info-modal textarea,
+    #restaurant-info-modal input:not([type="checkbox"]):not([type="radio"]) {
+      min-width: 0;
+    }
+
+    #restaurant-info-modal button {
+      max-width: 100%;
+    }
+
+    @media (max-width: 720px) {
+      #restaurant-info-modal .restaurant-options-panel {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      #restaurant-info-modal .restaurant-options-body {
+        overflow-x: hidden;
+      }
+
+      #restaurant-info-modal .flex {
+        min-width: 0;
+      }
+
+      #restaurant-info-modal .grid {
+        min-width: 0;
+      }
+
+      #restaurant-info-modal .inline-flex {
+        max-width: 100%;
+      }
+
+      #restaurant-info-modal [data-general-copy],
+      #restaurant-info-modal [data-general-request] {
+        width: 100%;
+      }
     }
   </style>
 
