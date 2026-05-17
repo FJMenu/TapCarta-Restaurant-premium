@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.1.9';
+        const APP_VERSION = 'V1.4.1.10';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -11294,26 +11294,26 @@ function renderRequestRow(item, displayMode = 'active') {
               <div class="grid gap-3">
                 ${protectedRows.map((row) => `
                   <div class="rounded-[20px] border border-white/10 bg-black/20 px-4 py-4">
-                    <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-                      <div class="flex items-start gap-3 min-w-0 flex-1">
+                    <div class="grid gap-3">
+                      <div class="flex items-start gap-3 min-w-0">
                         <div class="w-10 h-10 rounded-2xl border border-gold/18 bg-gold/8 flex items-center justify-center shrink-0">
                           <i data-lucide="${row.icon}" class="w-5 h-5 text-gold"></i>
                         </div>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                           <div class="text-sm font-bold text-cream">${row.label}</div>
                           <div class="text-sm text-cream/55 mt-1 truncate">${escapeHtml(row.value || '—')}</div>
                         </div>
                       </div>
 
-                      <div class="flex flex-wrap gap-2 md:justify-end">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         ${row.copy && row.value ? `
                           <button
                             type="button"
                             data-general-copy="${row.key}"
-                            class="btn-action inline-flex items-center justify-center gap-2 rounded-xl border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/12"
+                            class="btn-action w-full min-w-0 inline-flex items-center justify-center gap-2 rounded-xl border border-gold/25 bg-gold/8 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/12"
                           >
-                            <i data-lucide="copy" class="w-4 h-4"></i>
-                            <span>${text.copy}</span>
+                            <i data-lucide="copy" class="w-4 h-4 shrink-0"></i>
+                            <span class="truncate">${text.copy}</span>
                           </button>
                         ` : ''}
 
@@ -11321,10 +11321,10 @@ function renderRequestRow(item, displayMode = 'active') {
                           <button
                             type="button"
                             data-general-request="${row.key}"
-                            class="btn-action inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-bold text-cream/78 hover:bg-white/8"
+                            class="btn-action w-full min-w-0 inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-bold text-cream/78 hover:bg-white/8"
                           >
-                            <i data-lucide="send" class="w-4 h-4"></i>
-                            <span>${text.requestChange}</span>
+                            <i data-lucide="send" class="w-4 h-4 shrink-0"></i>
+                            <span class="truncate">${text.requestChange}</span>
                           </button>
                         ` : ''}
                       </div>
