@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.1';
+        const APP_VERSION = 'V1.4.2.2';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -1609,6 +1609,76 @@ async function fetchJsonFile(path) {
   return response.json();
 }
 
+function isUuid(value) {
+  return typeof value === 'string'
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+async function resolveSupabaseRestaurantId(activeRestaurant, restaurantData) {
+  const directCandidates = [
+    restaurantData?.supabaseRestaurantId,
+    restaurantData?.restaurantId,
+    restaurantData?.identity?.supabaseRestaurantId,
+    restaurantData?.identity?.restaurantId,
+    activeRestaurant?.supabaseRestaurantId,
+    activeRestaurant?.restaurantId
+  ].filter(Boolean);
+
+  const directUuid = directCandidates.find(isUuid);
+  if (directUuid) return directUuid;
+
+  const slugCandidates = [
+    restaurantData?.slug,
+    restaurantData?.identity?.slug,
+    activeRestaurant?.slug,
+    activeRestaurant?.id,
+    restaurantData?.identity?.id
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  for (const slug of slugCandidates) {
+    const { data, error } = await supabaseClient
+      .from('restaurants')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (!error && data?.id) {
+      return data.id;
+    }
+  }
+
+  const nameCandidates = [
+    restaurantData?.identity?.name,
+    restaurantData?.name,
+    activeRestaurant?.name
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  for (const name of nameCandidates) {
+    const { data, error } = await supabaseClient
+      .from('restaurants')
+      .select('id')
+      .ilike('name', name)
+      .maybeSingle();
+
+    if (!error && data?.id) {
+      return data.id;
+    }
+  }
+
+  console.warn('TapCarta Resto: aucun UUID restaurant Supabase trouvé pour ce restaurant actif.', {
+    activeRestaurant,
+    restaurantIdentity: restaurantData?.identity || null
+  });
+
+  return '';
+}
+
 async function loadActiveRestaurantData() {
   const restaurantsIndex = await fetchJsonFile('./restaurants/index.json');
 
@@ -1630,12 +1700,24 @@ async function loadActiveRestaurantData() {
 
   const restaurantData = await fetchJsonFile(restaurantFilePath);
 
-  if (restaurantData?.identity?.id) {
+  const resolvedSupabaseRestaurantId = await resolveSupabaseRestaurantId(activeRestaurant, restaurantData);
+
+  if (!restaurantData.identity || typeof restaurantData.identity !== 'object') {
+    restaurantData.identity = {};
+  }
+
+  restaurantData.identity.localId = restaurantData.identity.id || activeRestaurant.id || '';
+  restaurantData.identity.id = resolvedSupabaseRestaurantId || restaurantData.identity.id || activeRestaurant.id || '';
+  restaurantData.supabaseRestaurantId = resolvedSupabaseRestaurantId || '';
+
+  siteConfig.restaurantId = resolvedSupabaseRestaurantId || '';
+
+  if (resolvedSupabaseRestaurantId) {
     try {
       const { data: liveMenuRow, error: liveMenuError } = await supabaseClient
         .from('restaurant_menus')
         .select('menu_json, menu_version, updated_at')
-        .eq('restaurant_id', restaurantData.identity.id)
+        .eq('restaurant_id', resolvedSupabaseRestaurantId)
         .maybeSingle();
 
       if (liveMenuError) {
