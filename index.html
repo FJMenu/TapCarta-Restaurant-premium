@@ -10649,21 +10649,6 @@ function renderRequestRow(item, displayMode = 'active') {
     renderRestaurantInfoHome();
   }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'restaurant-info-modal';
-    overlay.className = 'restaurant-options-modal';
-
-    document.body.appendChild(overlay);
-
-    overlay.addEventListener('click', (event) => {
-      if (event.target === overlay) {
-        closeRestaurantInfoModal();
-      }
-    });
-
-    renderRestaurantInfoHome();
-  }
-
   function ensureRestaurantMenuShape() {
     if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return;
 
