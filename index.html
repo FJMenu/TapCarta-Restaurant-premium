@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.4';
+        const APP_VERSION = 'V1.4.2.5';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -11359,38 +11359,115 @@ function renderRequestRow(item, displayMode = 'active') {
     const draft = ensureRestaurantGeneralInfoDraft();
     if (!draft) return;
 
-    const readValue = (id) => document.getElementById(id)?.value?.trim() || '';
+    const saveButton = document.getElementById('restaurant-general-save-btn');
+    const saveButtonLabel = saveButton?.querySelector('span');
+    const saveButtonIcon = saveButton?.querySelector('i');
+    const text = getRestaurantGeneralInfoText();
+    const originalLabel = saveButtonLabel ? saveButtonLabel.textContent : '';
 
-    draft.phone = readValue('restaurant-general-phone');
-    draft.whatsapp = readValue('restaurant-general-whatsapp');
-
-    draft.customerMessages = [0, 1, 2].map((index) => {
-      const textValue = readValue(`restaurant-general-message-${index}`).slice(0, 120);
-      const activeValue = Boolean(document.querySelector(`[data-general-message-active="${index}"]`)?.checked);
-
-      return {
-        active: activeValue,
-        text: textValue
-      };
-    });
-
-    if (!activeRestaurantData.identity || typeof activeRestaurantData.identity !== 'object') {
-      activeRestaurantData.identity = {};
+    if (saveButton) {
+      saveButton.disabled = true;
+      saveButton.classList.remove('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
+      saveButton.classList.add('border-emerald-400/50', 'bg-emerald-500/15');
     }
 
-    activeRestaurantData.identity.phone = draft.phone;
-    activeRestaurantData.identity.whatsapp = draft.whatsapp;
-    activeRestaurantData.customerMessages = draft.customerMessages.map((message) => ({ ...message }));
+    if (saveButtonIcon) {
+      saveButtonIcon.classList.remove('text-gold');
+      saveButtonIcon.classList.add('text-emerald-300');
+    }
 
-    await saveRestaurantSettingsToSupabase({
-      contact_json: {
-        phone: draft.phone,
-        whatsapp: draft.whatsapp
-      },
-      customer_messages_json: normalizeCustomerMessagesForSettings(draft.customerMessages)
-    });
+    if (saveButtonLabel) {
+      saveButtonLabel.textContent =
+        currentLang === 'es' ? 'Guardando…' :
+        currentLang === 'en' ? 'Saving…' :
+        currentLang === 'nl' ? 'Opslaan…' :
+        'Enregistrement…';
+    }
 
-    showRestaurantToast(getRestaurantGeneralInfoText().saved, 'success');
+    try {
+      const readValue = (id) => document.getElementById(id)?.value?.trim() || '';
+
+      draft.phone = readValue('restaurant-general-phone');
+      draft.whatsapp = readValue('restaurant-general-whatsapp');
+
+      draft.customerMessages = [0, 1, 2].map((index) => {
+        const textValue = readValue(`restaurant-general-message-${index}`).slice(0, 120);
+        const activeValue = Boolean(document.querySelector(`[data-general-message-active="${index}"]`)?.checked);
+
+        return {
+          active: activeValue,
+          text: textValue
+        };
+      });
+
+      if (!activeRestaurantData.identity || typeof activeRestaurantData.identity !== 'object') {
+        activeRestaurantData.identity = {};
+      }
+
+      activeRestaurantData.identity.phone = draft.phone;
+      activeRestaurantData.identity.whatsapp = draft.whatsapp;
+      activeRestaurantData.customerMessages = draft.customerMessages.map((message) => ({ ...message }));
+
+      await saveRestaurantSettingsToSupabase({
+        contact_json: {
+          phone: draft.phone,
+          whatsapp: draft.whatsapp
+        },
+        customer_messages_json: normalizeCustomerMessagesForSettings(draft.customerMessages)
+      });
+
+      showRestaurantToast(text.saved, 'success');
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent =
+          currentLang === 'es' ? 'Guardado' :
+          currentLang === 'en' ? 'Saved' :
+          currentLang === 'nl' ? 'Opgeslagen' :
+          'Enregistré';
+      }
+
+      setTimeout(() => {
+        if (saveButton) {
+          saveButton.disabled = false;
+          saveButton.classList.remove('border-emerald-400/50', 'bg-emerald-500/15');
+          saveButton.classList.add('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
+        }
+
+        if (saveButtonIcon) {
+          saveButtonIcon.classList.remove('text-emerald-300');
+          saveButtonIcon.classList.add('text-gold');
+        }
+
+        if (saveButtonLabel) {
+          saveButtonLabel.textContent = originalLabel || text.save;
+        }
+      }, 1800);
+    } catch (error) {
+      console.error('Erreur enregistrement informations générales restaurant :', error);
+
+      showRestaurantToast(
+        currentLang === 'es' ? 'No se han podido guardar los cambios.' :
+        currentLang === 'en' ? 'The changes could not be saved.' :
+        currentLang === 'nl' ? 'De wijzigingen konden niet worden opgeslagen.' :
+        'Les modifications n’ont pas pu être enregistrées.',
+        'error'
+      );
+
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.classList.remove('border-emerald-400/50', 'bg-emerald-500/15');
+        saveButton.classList.add('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
+      }
+
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-emerald-300');
+        saveButtonIcon.classList.add('text-gold');
+      }
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent = originalLabel || text.save;
+      }
+    }
   }
 
   function renderRestaurantGeneralInfoScreen() {
