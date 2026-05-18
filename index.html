@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.3';
+        const APP_VERSION = 'V1.4.2.4';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10494,21 +10494,94 @@ function renderRequestRow(item, displayMode = 'active') {
   }
 
   async function saveRestaurantOptionsModal() {
-    setRestaurantOptionStatus('booking', readRestaurantOptionChoice('booking'));
-    setRestaurantOptionStatus('ordering', readRestaurantOptionChoice('ordering'));
-    setRestaurantOptionStatus('whatsapp', readRestaurantOptionChoice('whatsapp'));
-    setRestaurantOptionStatus('phone', readRestaurantOptionChoice('phone'));
-    setRestaurantOptionStatus('directions', readRestaurantOptionChoice('directions'));
-    setRestaurantOptionStatus('googleReviews', readRestaurantOptionChoice('googleReviews'));
+    const saveButton = document.getElementById('restaurant-options-save-btn');
+    const saveButtonLabel = saveButton?.querySelector('span');
+    const saveButtonIcon = saveButton?.querySelector('i');
 
+    const originalLabel = saveButtonLabel ? saveButtonLabel.textContent : '';
     const text = getRestaurantOptionsText();
 
-    await saveRestaurantSettingsToSupabase({
-      modules_json: normalizeRestaurantModulesForSettings(activeRestaurantData.modules)
-    });
+    if (saveButton) {
+      saveButton.disabled = true;
+      saveButton.classList.remove('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
+      saveButton.classList.add('border-emerald-400/50', 'bg-emerald-500/15');
+    }
 
-    showTapCartaMessage(text.saved);
-    closeRestaurantOptionsModal();
+    if (saveButtonIcon) {
+      saveButtonIcon.classList.remove('text-gold');
+      saveButtonIcon.classList.add('text-emerald-300');
+    }
+
+    if (saveButtonLabel) {
+      saveButtonLabel.textContent =
+        currentLang === 'es' ? 'Guardando…' :
+        currentLang === 'en' ? 'Saving…' :
+        currentLang === 'nl' ? 'Opslaan…' :
+        'Enregistrement…';
+    }
+
+    try {
+      setRestaurantOptionStatus('booking', readRestaurantOptionChoice('booking'));
+      setRestaurantOptionStatus('ordering', readRestaurantOptionChoice('ordering'));
+      setRestaurantOptionStatus('whatsapp', readRestaurantOptionChoice('whatsapp'));
+      setRestaurantOptionStatus('phone', readRestaurantOptionChoice('phone'));
+      setRestaurantOptionStatus('directions', readRestaurantOptionChoice('directions'));
+      setRestaurantOptionStatus('googleReviews', readRestaurantOptionChoice('googleReviews'));
+
+      await saveRestaurantSettingsToSupabase({
+        modules_json: normalizeRestaurantModulesForSettings(activeRestaurantData.modules)
+      });
+
+      showTapCartaMessage(text.saved);
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent =
+          currentLang === 'es' ? 'Guardado' :
+          currentLang === 'en' ? 'Saved' :
+          currentLang === 'nl' ? 'Opgeslagen' :
+          'Enregistré';
+      }
+
+      setTimeout(() => {
+        if (saveButton) {
+          saveButton.disabled = false;
+          saveButton.classList.remove('border-emerald-400/50', 'bg-emerald-500/15');
+          saveButton.classList.add('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
+        }
+
+        if (saveButtonIcon) {
+          saveButtonIcon.classList.remove('text-emerald-300');
+          saveButtonIcon.classList.add('text-gold');
+        }
+
+        if (saveButtonLabel) {
+          saveButtonLabel.textContent = originalLabel || text.save;
+        }
+      }, 1800);
+    } catch (error) {
+      console.error('Erreur enregistrement options restaurant :', error);
+      showTapCartaMessage(
+        currentLang === 'es' ? 'No se han podido guardar los cambios.' :
+        currentLang === 'en' ? 'The changes could not be saved.' :
+        currentLang === 'nl' ? 'De wijzigingen konden niet worden opgeslagen.' :
+        'Les modifications n’ont pas pu être enregistrées.'
+      );
+
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.classList.remove('border-emerald-400/50', 'bg-emerald-500/15');
+        saveButton.classList.add('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
+      }
+
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-emerald-300');
+        saveButtonIcon.classList.add('text-gold');
+      }
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent = originalLabel || text.save;
+      }
+    }
   }
 
   function openRestaurantOptionsModal() {
