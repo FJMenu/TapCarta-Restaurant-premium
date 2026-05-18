@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.6';
+        const APP_VERSION = 'V1.4.2.7';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -1713,6 +1713,13 @@ async function loadActiveRestaurantData() {
   siteConfig.restaurantId = resolvedSupabaseRestaurantId || '';
 
   if (resolvedSupabaseRestaurantId) {
+    try {
+      const liveSettings = await loadRestaurantSettingsFromSupabase(resolvedSupabaseRestaurantId);
+      applyRestaurantSettingsFromSupabase(restaurantData, liveSettings);
+    } catch (error) {
+      console.error('Erreur lecture réglages live Supabase côté restaurant :', error);
+    }
+
     try {
       const { data: liveMenuRow, error: liveMenuError } = await supabaseClient
         .from('restaurant_menus')
@@ -5839,6 +5846,80 @@ function normalizeRestaurantModulesForSettings(modules) {
     directions: normalizeQuickStatus(source.directions),
     googleReviews: normalizeQuickStatus(source.googleReviews)
   };
+}
+async function loadRestaurantSettingsFromSupabase(restaurantId) {
+  if (!restaurantId || !isUuid(restaurantId)) {
+    console.warn('TapCarta Resto: lecture restaurant_settings impossible, UUID invalide.', restaurantId);
+    return null;
+  }
+
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+    console.warn('TapCarta Resto: Supabase non disponible pour lecture restaurant_settings.');
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('restaurant_settings')
+    .select('active_languages, modules, contact_json, modules_json, customer_messages_json, hours_json, updated_at')
+    .eq('restaurant_id', restaurantId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('TapCarta Resto: erreur lecture restaurant_settings.', error);
+    return null;
+  }
+
+  return data || null;
+}
+
+function applyRestaurantSettingsFromSupabase(restaurantData, settings) {
+  if (!restaurantData || !settings) return restaurantData;
+
+  if (!restaurantData.identity || typeof restaurantData.identity !== 'object') {
+    restaurantData.identity = {};
+  }
+
+  if (Array.isArray(settings.active_languages)) {
+    restaurantData.activeLanguages = settings.active_languages;
+    restaurantData.identity.languages = settings.active_languages;
+  }
+
+  if (settings.contact_json && typeof settings.contact_json === 'object') {
+    restaurantData.identity.phone = settings.contact_json.phone || restaurantData.identity.phone || '';
+    restaurantData.identity.whatsapp = settings.contact_json.whatsapp || restaurantData.identity.whatsapp || '';
+    restaurantData.contact = {
+      ...(restaurantData.contact || {}),
+      ...settings.contact_json
+    };
+  }
+
+  if (settings.modules_json && typeof settings.modules_json === 'object') {
+    restaurantData.modules = {
+      ...(restaurantData.modules || {}),
+      ...settings.modules_json
+    };
+  } else if (settings.modules && typeof settings.modules === 'object') {
+    restaurantData.modules = {
+      ...(restaurantData.modules || {}),
+      ...settings.modules
+    };
+  }
+
+  if (Array.isArray(settings.customer_messages_json)) {
+    restaurantData.customerMessages = settings.customer_messages_json.map((message) => ({
+      active: Boolean(message?.active),
+      text: typeof message?.text === 'string' ? message.text.slice(0, 120) : ''
+    }));
+  }
+
+  if (settings.hours_json && typeof settings.hours_json === 'object') {
+    restaurantData.hours = settings.hours_json;
+    restaurantData.restaurantHours = settings.hours_json;
+  }
+
+  restaurantData.restaurantSettingsUpdatedAt = settings.updated_at || '';
+
+  return restaurantData;
 }
 
 async function saveRestaurantSettingsToSupabase(partialSettings = {}) {
