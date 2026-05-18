@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.7';
+        const APP_VERSION = 'V1.4.2.8';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -5823,6 +5823,98 @@ function normalizeCustomerMessagesForSettings(messages) {
   }));
 }
 
+async function hydrateRestaurantGeneralInfoDraftFromSupabaseOnce() {
+  if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return false;
+
+  if (activeRestaurantData.restaurantGeneralInfoSupabaseHydrated === true) {
+    return true;
+  }
+
+  const restaurantId = getActiveRestaurantSettingsId();
+
+  if (!restaurantId) {
+    console.warn('TapCarta Resto: lecture informations générales impossible, restaurant_id manquant.');
+    return false;
+  }
+
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+    console.warn('TapCarta Resto: Supabase non disponible pour lire les informations générales.');
+    return false;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('restaurant_settings')
+      .select('contact_json, customer_messages_json')
+      .eq('restaurant_id', restaurantId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    const draft = ensureRestaurantGeneralInfoDraft();
+    if (!draft) return false;
+
+    const contact = data?.contact_json;
+
+    if (contact && typeof contact === 'object' && !Array.isArray(contact)) {
+      const hasPhone = Object.prototype.hasOwnProperty.call(contact, 'phone');
+      const hasWhatsapp = Object.prototype.hasOwnProperty.call(contact, 'whatsapp');
+
+      if (hasPhone) {
+        draft.phone = typeof contact.phone === 'string' ? contact.phone : '';
+      }
+
+      if (hasWhatsapp) {
+        draft.whatsapp = typeof contact.whatsapp === 'string' ? contact.whatsapp : '';
+      }
+
+      if (!activeRestaurantData.identity || typeof activeRestaurantData.identity !== 'object') {
+        activeRestaurantData.identity = {};
+      }
+
+      if (hasPhone) {
+        activeRestaurantData.identity.phone = draft.phone;
+        activeRestaurantData.phone = draft.phone;
+      }
+
+      if (hasWhatsapp) {
+        activeRestaurantData.identity.whatsapp = draft.whatsapp;
+        activeRestaurantData.whatsapp = draft.whatsapp;
+      }
+    }
+
+    const messages = data?.customer_messages_json;
+
+    if (Array.isArray(messages) && messages.length > 0) {
+      const normalizedMessages = normalizeCustomerMessagesForSettings(messages);
+
+      draft.customerMessages = [0, 1, 2].map((index) => {
+        const message = normalizedMessages[index] || draft.customerMessages?.[index] || {};
+
+        return {
+          active: Boolean(message.active),
+          text: typeof message.text === 'string' ? message.text.slice(0, 120) : ''
+        };
+      });
+
+      activeRestaurantData.customerMessages = draft.customerMessages.map((message) => ({ ...message }));
+    }
+
+    activeRestaurantData.restaurantGeneralInfoSupabaseHydrated = true;
+    return true;
+  } catch (error) {
+    console.warn('TapCarta Resto: erreur lecture informations générales depuis Supabase.', error);
+    return false;
+  }
+}
+
+async function openRestaurantGeneralInfoScreen() {
+  await hydrateRestaurantGeneralInfoDraftFromSupabaseOnce();
+  renderRestaurantGeneralInfoScreen();
+}
+
 function normalizeRestaurantModulesForSettings(modules) {
   const source = modules && typeof modules === 'object' ? modules : {};
 
@@ -11508,13 +11600,19 @@ async function saveRestaurantOptionsModal() {
       activeRestaurantData.identity.whatsapp = draft.whatsapp;
       activeRestaurantData.customerMessages = draft.customerMessages.map((message) => ({ ...message }));
 
-      await saveRestaurantSettingsToSupabase({
+      const settingsSaved = await saveRestaurantSettingsToSupabase({
         contact_json: {
           phone: draft.phone,
           whatsapp: draft.whatsapp
         },
         customer_messages_json: normalizeCustomerMessagesForSettings(draft.customerMessages)
       });
+
+      if (!settingsSaved) {
+        throw new Error('restaurant_settings_not_saved');
+      }
+
+      activeRestaurantData.restaurantGeneralInfoSupabaseHydrated = true;
 
       showRestaurantToast(text.saved, 'success');
 
@@ -11822,7 +11920,21 @@ async function saveRestaurantOptionsModal() {
 
     document.querySelectorAll('[data-general-message-active]').forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
-        renderRestaurantGeneralInfoScreen();
+        const label = checkbox.closest('label');
+        const labelText = label?.querySelector('span');
+        const text = getRestaurantGeneralInfoText();
+
+        if (!label || !labelText) return;
+
+        label.classList.toggle('border-emerald-400/28', checkbox.checked);
+        label.classList.toggle('bg-emerald-500/10', checkbox.checked);
+        label.classList.toggle('text-emerald-300', checkbox.checked);
+
+        label.classList.toggle('border-white/12', !checkbox.checked);
+        label.classList.toggle('bg-white/5', !checkbox.checked);
+        label.classList.toggle('text-cream/60', !checkbox.checked);
+
+        labelText.textContent = checkbox.checked ? text.active : text.hidden;
       });
     });
 
@@ -11898,7 +12010,7 @@ async function saveRestaurantOptionsModal() {
     document.getElementById('restaurant-info-close-btn')?.addEventListener('click', closeRestaurantInfoModal);
     document.getElementById('restaurant-info-cancel-btn')?.addEventListener('click', closeRestaurantInfoModal);
     document.getElementById('restaurant-info-hours-btn')?.addEventListener('click', renderRestaurantHoursScreen);
-    document.getElementById('restaurant-info-general-btn')?.addEventListener('click', renderRestaurantGeneralInfoScreen);
+    document.getElementById('restaurant-info-general-btn')?.addEventListener('click', openRestaurantGeneralInfoScreen);
 
     renderRestaurantInfoIcons();
   }
