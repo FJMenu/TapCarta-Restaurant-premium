@@ -11188,6 +11188,68 @@ async function saveRestaurantOptionsModal() {
     const hours = ensureRestaurantHoursDraft();
     if (!hours) return;
 
+    const saveButton = document.getElementById('restaurant-hours-save-btn');
+    const saveButtonLabel = saveButton?.querySelector('span');
+    const saveButtonIcon = saveButton?.querySelector('i');
+    const text = getRestaurantHoursText();
+    const originalLabel = saveButtonLabel ? saveButtonLabel.textContent : text.save;
+
+    const applySavedState = () => {
+      if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.classList.remove(
+          'border-gold/45',
+          'bg-gold/15',
+          'hover:bg-gold/20',
+          'text-cream'
+        );
+        saveButton.classList.add(
+          'border-emerald-300',
+          'bg-emerald-500',
+          'text-black'
+        );
+      }
+
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-gold', 'text-emerald-300');
+        saveButtonIcon.classList.add('text-black');
+      }
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent =
+          currentLang === 'es' ? 'Guardado' :
+          currentLang === 'en' ? 'Saved' :
+          currentLang === 'nl' ? 'Opgeslagen' :
+          'Enregistré';
+      }
+    };
+
+    const resetButtonState = () => {
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.classList.remove(
+          'border-emerald-300',
+          'bg-emerald-500',
+          'text-black'
+        );
+        saveButton.classList.add(
+          'border-gold/45',
+          'bg-gold/15',
+          'hover:bg-gold/20',
+          'text-cream'
+        );
+      }
+
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-black', 'text-emerald-300');
+        saveButtonIcon.classList.add('text-gold');
+      }
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent = originalLabel;
+      }
+    };
+
     hours.general = readHoursRowsFromDom('general');
 
     ['booking', 'ordering'].forEach((moduleKey) => {
@@ -11200,7 +11262,10 @@ async function saveRestaurantOptionsModal() {
       };
     });
 
-    showTapCartaMessage(getRestaurantHoursText().saved);
+    showTapCartaMessage(text.saved);
+    applySavedState();
+
+    setTimeout(resetButtonState, 1800);
   }
 
   function getRestaurantGeneralInfoText() {
