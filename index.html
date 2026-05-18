@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.2';
+        const APP_VERSION = 'V1.4.2.3';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -5789,13 +5789,26 @@ function getActiveRestaurantIdForManualRequest() {
 }
 
 function getActiveRestaurantSettingsId() {
-  return (
-    activeRestaurantData?.identity?.id ||
-    activeRestaurantData?.id ||
-    siteConfig?.identity?.id ||
-    siteConfig?.restaurantId ||
-    ''
-  );
+  const candidates = [
+    activeRestaurantData?.supabaseRestaurantId,
+    activeRestaurantData?.restaurantId,
+    activeRestaurantData?.identity?.supabaseRestaurantId,
+    activeRestaurantData?.identity?.restaurantId,
+    siteConfig?.restaurantId
+  ].filter(Boolean);
+
+  const restaurantId = candidates.find(isUuid);
+
+  if (!restaurantId) {
+    console.warn('TapCarta Resto: aucun UUID Supabase valide disponible pour restaurant_settings.', {
+      activeRestaurantData,
+      siteConfigRestaurantId: siteConfig?.restaurantId || ''
+    });
+
+    return '';
+  }
+
+  return restaurantId;
 }
 
 function normalizeCustomerMessagesForSettings(messages) {
