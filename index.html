@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.5';
+        const APP_VERSION = 'V1.4.2.6';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10493,7 +10493,7 @@ function renderRequestRow(item, displayMode = 'active') {
     }
   }
 
-  async function saveRestaurantOptionsModal() {
+async function saveRestaurantOptionsModal() {
     const saveButton = document.getElementById('restaurant-options-save-btn');
     const saveButtonLabel = saveButton?.querySelector('span');
     const saveButtonIcon = saveButton?.querySelector('i');
@@ -10501,26 +10501,95 @@ function renderRequestRow(item, displayMode = 'active') {
     const originalLabel = saveButtonLabel ? saveButtonLabel.textContent : '';
     const text = getRestaurantOptionsText();
 
-    if (saveButton) {
-      saveButton.disabled = true;
-      saveButton.classList.remove('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
-      saveButton.classList.add('border-emerald-400/50', 'bg-emerald-500/15');
-    }
+    const applySavingState = () => {
+      if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.classList.remove(
+          'border-gold/45',
+          'bg-gold/15',
+          'hover:bg-gold/20',
+          'text-cream'
+        );
+        saveButton.classList.add(
+          'border-emerald-300',
+          'bg-emerald-500',
+          'text-black'
+        );
+      }
 
-    if (saveButtonIcon) {
-      saveButtonIcon.classList.remove('text-gold');
-      saveButtonIcon.classList.add('text-emerald-300');
-    }
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-gold', 'text-emerald-300');
+        saveButtonIcon.classList.add('text-black');
+      }
 
-    if (saveButtonLabel) {
-      saveButtonLabel.textContent =
-        currentLang === 'es' ? 'Guardando…' :
-        currentLang === 'en' ? 'Saving…' :
-        currentLang === 'nl' ? 'Opslaan…' :
-        'Enregistrement…';
-    }
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent =
+          currentLang === 'es' ? 'Guardando…' :
+          currentLang === 'en' ? 'Saving…' :
+          currentLang === 'nl' ? 'Opslaan…' :
+          'Enregistrement…';
+      }
+    };
+
+    const applySavedState = () => {
+      if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.classList.remove(
+          'border-gold/45',
+          'bg-gold/15',
+          'hover:bg-gold/20',
+          'text-cream'
+        );
+        saveButton.classList.add(
+          'border-emerald-300',
+          'bg-emerald-500',
+          'text-black'
+        );
+      }
+
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-gold', 'text-emerald-300');
+        saveButtonIcon.classList.add('text-black');
+      }
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent =
+          currentLang === 'es' ? 'Guardado' :
+          currentLang === 'en' ? 'Saved' :
+          currentLang === 'nl' ? 'Opgeslagen' :
+          'Enregistré';
+      }
+    };
+
+    const resetButtonState = () => {
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.classList.remove(
+          'border-emerald-300',
+          'bg-emerald-500',
+          'text-black'
+        );
+        saveButton.classList.add(
+          'border-gold/45',
+          'bg-gold/15',
+          'hover:bg-gold/20',
+          'text-cream'
+        );
+      }
+
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-black', 'text-emerald-300');
+        saveButtonIcon.classList.add('text-gold');
+      }
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent = originalLabel || text.save;
+      }
+    };
 
     try {
+      applySavingState();
+
       setRestaurantOptionStatus('booking', readRestaurantOptionChoice('booking'));
       setRestaurantOptionStatus('ordering', readRestaurantOptionChoice('ordering'));
       setRestaurantOptionStatus('whatsapp', readRestaurantOptionChoice('whatsapp'));
@@ -10533,31 +10602,9 @@ function renderRequestRow(item, displayMode = 'active') {
       });
 
       showTapCartaMessage(text.saved);
+      applySavedState();
 
-      if (saveButtonLabel) {
-        saveButtonLabel.textContent =
-          currentLang === 'es' ? 'Guardado' :
-          currentLang === 'en' ? 'Saved' :
-          currentLang === 'nl' ? 'Opgeslagen' :
-          'Enregistré';
-      }
-
-      setTimeout(() => {
-        if (saveButton) {
-          saveButton.disabled = false;
-          saveButton.classList.remove('border-emerald-400/50', 'bg-emerald-500/15');
-          saveButton.classList.add('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
-        }
-
-        if (saveButtonIcon) {
-          saveButtonIcon.classList.remove('text-emerald-300');
-          saveButtonIcon.classList.add('text-gold');
-        }
-
-        if (saveButtonLabel) {
-          saveButtonLabel.textContent = originalLabel || text.save;
-        }
-      }, 1800);
+      setTimeout(resetButtonState, 1800);
     } catch (error) {
       console.error('Erreur enregistrement options restaurant :', error);
       showTapCartaMessage(
@@ -10567,20 +10614,7 @@ function renderRequestRow(item, displayMode = 'active') {
         'Les modifications n’ont pas pu être enregistrées.'
       );
 
-      if (saveButton) {
-        saveButton.disabled = false;
-        saveButton.classList.remove('border-emerald-400/50', 'bg-emerald-500/15');
-        saveButton.classList.add('border-gold/45', 'bg-gold/15', 'hover:bg-gold/20');
-      }
-
-      if (saveButtonIcon) {
-        saveButtonIcon.classList.remove('text-emerald-300');
-        saveButtonIcon.classList.add('text-gold');
-      }
-
-      if (saveButtonLabel) {
-        saveButtonLabel.textContent = originalLabel || text.save;
-      }
+      resetButtonState();
     }
   }
 
@@ -10686,7 +10720,7 @@ function renderRequestRow(item, displayMode = 'active') {
             class="btn-action inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/15 text-sm font-semibold text-cream hover:bg-white/5 transition-all"
           >
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            <span>${text.cancel}</span>
+            <span>${currentLang === 'es' ? 'Volver' : currentLang === 'en' ? 'Back' : currentLang === 'nl' ? 'Terug' : 'Retour'}</span>
           </button>
 
           <button
