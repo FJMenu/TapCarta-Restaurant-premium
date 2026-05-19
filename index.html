@@ -1,4 +1,4 @@
-<!doctype html>
+ <!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.3.1';
+        const APP_VERSION = 'V1.4.3.2';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -11120,10 +11120,10 @@ async function saveRestaurantOptionsModal() {
             : 'laisser vide si non utilisé';
 
     const copyLabel =
-      currentLang === 'es' ? 'Copiar en días vacíos'
-        : currentLang === 'en' ? 'Copy to empty days'
-          : currentLang === 'nl' ? 'Kopiëren naar lege dagen'
-            : 'Copier sur les jours vides';
+      currentLang === 'es' ? 'Aplicar a los días sin horarios'
+        : currentLang === 'en' ? 'Apply to days without hours'
+          : currentLang === 'nl' ? 'Toepassen op dagen zonder uren'
+            : 'Appliquer aux jours sans horaires';
 
     const closedHint =
       currentLang === 'es' ? 'Pulse Abrir para configurar este día.'
@@ -12517,10 +12517,10 @@ async function saveRestaurantOptionsModal() {
       });
 
       showTapCartaMessage(
-        currentLang === 'es' ? 'Horarios copiados en los días vacíos.' :
-        currentLang === 'en' ? 'Hours copied to empty days.' :
-        currentLang === 'nl' ? 'Uren gekopieerd naar lege dagen.' :
-        'Horaires copiés sur les jours vides.'
+        currentLang === 'es' ? 'Horarios aplicados a los días sin horarios.' :
+        currentLang === 'en' ? 'Hours applied to days without hours.' :
+        currentLang === 'nl' ? 'Uren toegepast op dagen zonder uren.' :
+        'Horaires appliqués aux jours sans horaires.'
       );
     }
 
