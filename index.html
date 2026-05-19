@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.9';
+        const APP_VERSION = 'V1.4.2.10';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -10979,14 +10979,22 @@ async function saveRestaurantOptionsModal() {
 
     const clone = (value) => JSON.parse(JSON.stringify(value));
 
+    const emptyDayHours = {
+      open: false,
+      slots: [
+        { from: '', to: '' },
+        { from: '', to: '' }
+      ]
+    };
+
     const defaultGeneralHours = {
-      monday: { open: false, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
-      tuesday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
-      wednesday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
-      thursday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] },
-      friday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:30' }] },
-      saturday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:30' }] },
-      sunday: { open: true, slots: [{ from: '11:30', to: '16:00' }, { from: '19:00', to: '23:00' }] }
+      monday: clone(emptyDayHours),
+      tuesday: clone(emptyDayHours),
+      wednesday: clone(emptyDayHours),
+      thursday: clone(emptyDayHours),
+      friday: clone(emptyDayHours),
+      saturday: clone(emptyDayHours),
+      sunday: clone(emptyDayHours)
     };
 
     function normalizeDays(target) {
@@ -11005,8 +11013,8 @@ async function saveRestaurantOptionsModal() {
         if (!Array.isArray(day.slots)) {
           day.slots = [
             {
-              from: day.from || defaultGeneralHours[dayKey].slots[0].from,
-              to: day.to || defaultGeneralHours[dayKey].slots[0].to
+              from: typeof day.from === 'string' ? day.from : '',
+              to: typeof day.to === 'string' ? day.to : ''
             },
             { from: '', to: '' }
           ];
@@ -11016,13 +11024,13 @@ async function saveRestaurantOptionsModal() {
           day.slots.push({ from: '', to: '' });
         }
 
-        day.slots = day.slots.slice(0, 2).map((slot, index) => ({
-          from: typeof slot?.from === 'string' ? slot.from : defaultGeneralHours[dayKey].slots[index]?.from || '',
-          to: typeof slot?.to === 'string' ? slot.to : defaultGeneralHours[dayKey].slots[index]?.to || ''
+        day.slots = day.slots.slice(0, 2).map((slot) => ({
+          from: typeof slot?.from === 'string' ? slot.from : '',
+          to: typeof slot?.to === 'string' ? slot.to : ''
         }));
 
         if (typeof day.open !== 'boolean') {
-          day.open = defaultGeneralHours[dayKey].open;
+          day.open = false;
         }
 
         delete day.from;
@@ -11069,8 +11077,8 @@ async function saveRestaurantOptionsModal() {
         draft[moduleKey].delayMode = 'auto';
       }
 
-      if (![0, 15, 45, 60].includes(Number(draft[moduleKey].customDelayMinutes))) {
-        draft[moduleKey].customDelayMinutes = 15;
+      if (![0, 15, 30, 45, 60].includes(Number(draft[moduleKey].customDelayMinutes))) {
+        draft[moduleKey].customDelayMinutes = 30;
       }
     });
 
@@ -11106,10 +11114,10 @@ async function saveRestaurantOptionsModal() {
             : 'Service 2';
 
     const optionalLabel =
-      currentLang === 'es' ? 'opcional'
-        : currentLang === 'en' ? 'optional'
-          : currentLang === 'nl' ? 'optioneel'
-            : 'optionnel';
+      currentLang === 'es' ? 'dejar vacío si no se usa'
+        : currentLang === 'en' ? 'leave empty if not used'
+          : currentLang === 'nl' ? 'leeg laten indien niet gebruikt'
+            : 'laisser vide si non utilisé';
 
     return Object.entries(labels).map(([dayKey, label]) => {
       const day = daysSource[dayKey];
@@ -11255,26 +11263,135 @@ async function saveRestaurantOptionsModal() {
     `;
   }
 
+  function timeToMinutesForRestaurantHours(value) {
+    if (typeof value !== 'string' || !value.includes(':')) return null;
+
+    const [rawHours, rawMinutes] = value.split(':');
+    const hours = Number(rawHours);
+    const minutes = Number(rawMinutes);
+
+    if (
+      !Number.isInteger(hours) ||
+      !Number.isInteger(minutes) ||
+      hours < 0 ||
+      hours > 23 ||
+      minutes < 0 ||
+      minutes > 59
+    ) {
+      return null;
+    }
+
+    return (hours * 60) + minutes;
+  }
+
+  function getRestaurantHoursConflictMessage() {
+    return currentLang === 'es'
+      ? 'Algunos horarios se solapan. Corrija los tramos antes de guardar.'
+      : currentLang === 'en'
+        ? 'Some time slots overlap. Please correct the hours before saving.'
+        : currentLang === 'nl'
+          ? 'Sommige uren overlappen. Pas de tijdsblokken aan voordat u opslaat.'
+          : 'Certains horaires se chevauchent. Corrigez les créneaux avant d’enregistrer.';
+  }
+
+  function normalizeRestaurantDaySlotsFromDom(fieldPrefix, dayKey) {
+    const isOpen = Boolean(document.querySelector(`[data-hours-open="${fieldPrefix}-${dayKey}"]`)?.checked);
+
+    const rawSlots = [0, 1].map((slotIndex) => ({
+      from: (document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${dayKey}-${slotIndex}"]`)?.value || '').trim(),
+      to: (document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${dayKey}-${slotIndex}"]`)?.value || '').trim()
+    }));
+
+    if (!isOpen) {
+      return {
+        open: false,
+        slots: []
+      };
+    }
+
+    const validSlots = rawSlots.filter((slot) => slot.from && slot.to);
+
+    const hasPartialSlot = rawSlots.some((slot) =>
+      (slot.from && !slot.to) ||
+      (!slot.from && slot.to)
+    );
+
+    if (hasPartialSlot) {
+      return {
+        open: true,
+        slots: validSlots,
+        error: 'partial'
+      };
+    }
+
+    const normalizedSlots = validSlots.map((slot) => ({
+      from: slot.from,
+      to: slot.to,
+      fromMinutes: timeToMinutesForRestaurantHours(slot.from),
+      toMinutes: timeToMinutesForRestaurantHours(slot.to)
+    }));
+
+    const hasInvalidSlot = normalizedSlots.some((slot) =>
+      slot.fromMinutes === null ||
+      slot.toMinutes === null ||
+      slot.fromMinutes >= slot.toMinutes
+    );
+
+    if (hasInvalidSlot) {
+      return {
+        open: true,
+        slots: normalizedSlots.map(({ from, to }) => ({ from, to })),
+        error: 'invalid'
+      };
+    }
+
+    const sortedSlots = normalizedSlots
+      .sort((a, b) => a.fromMinutes - b.fromMinutes);
+
+    const hasConflict = sortedSlots.some((slot, index) => {
+      if (index === 0) return false;
+      return slot.fromMinutes < sortedSlots[index - 1].toMinutes;
+    });
+
+    if (hasConflict) {
+      return {
+        open: true,
+        slots: sortedSlots.map(({ from, to }) => ({ from, to })),
+        error: 'conflict'
+      };
+    }
+
+    return {
+      open: true,
+      slots: sortedSlots.map(({ from, to }) => ({ from, to }))
+    };
+  }
+
   function readHoursRowsFromDom(fieldPrefix) {
     const result = {};
+    const errors = [];
 
     Object.keys(getRestaurantDayLabels()).forEach((dayKey) => {
+      const dayResult = normalizeRestaurantDaySlotsFromDom(fieldPrefix, dayKey);
+
+      if (dayResult.error) {
+        errors.push({
+          fieldPrefix,
+          dayKey,
+          type: dayResult.error
+        });
+      }
+
       result[dayKey] = {
-        open: Boolean(document.querySelector(`[data-hours-open="${fieldPrefix}-${dayKey}"]`)?.checked),
-        slots: [
-          {
-            from: document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${dayKey}-0"]`)?.value || '',
-            to: document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${dayKey}-0"]`)?.value || ''
-          },
-          {
-            from: document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${dayKey}-1"]`)?.value || '',
-            to: document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${dayKey}-1"]`)?.value || ''
-          }
-        ]
+        open: dayResult.open,
+        slots: Array.isArray(dayResult.slots) ? dayResult.slots : []
       };
     });
 
-    return result;
+    return {
+      days: result,
+      errors
+    };
   }
 
   async function saveRestaurantHoursDraft() {
@@ -11376,19 +11493,36 @@ async function saveRestaurantOptionsModal() {
     try {
       applySavingState();
 
-      hours.general = readHoursRowsFromDom('general');
+      const generalRead = readHoursRowsFromDom('general');
+      const bookingSpecificRead = readHoursRowsFromDom('booking-specific');
+      const orderingSpecificRead = readHoursRowsFromDom('ordering-specific');
+
+      const allErrors = [
+        ...generalRead.errors,
+        ...bookingSpecificRead.errors,
+        ...orderingSpecificRead.errors
+      ];
+
+      if (allErrors.length) {
+        showTapCartaMessage(getRestaurantHoursConflictMessage());
+        resetButtonState();
+        return;
+      }
+
+      hours.general = generalRead.days;
 
       ['booking', 'ordering'].forEach((moduleKey) => {
         const mode = document.querySelector(`input[name="${moduleKey}-mode"]:checked`)?.value || 'general';
         const delayMode = document.querySelector(`input[name="${moduleKey}-delay"]:checked`)?.value || 'auto';
-        const customDelayMinutes = Number(document.querySelector(`input[name="${moduleKey}-custom-delay"]:checked`)?.value || 15);
+        const customDelayMinutes = Number(document.querySelector(`input[name="${moduleKey}-custom-delay"]:checked`)?.value || 30);
+        const specificRead = moduleKey === 'booking' ? bookingSpecificRead : orderingSpecificRead;
 
         hours[moduleKey] = {
           ...hours[moduleKey],
           mode: ['general', 'specific'].includes(mode) ? mode : 'general',
-          specific: readHoursRowsFromDom(`${moduleKey}-specific`),
+          specific: specificRead.days,
           delayMode: ['auto', 'custom'].includes(delayMode) ? delayMode : 'auto',
-          customDelayMinutes: [0, 15, 45, 60].includes(customDelayMinutes) ? customDelayMinutes : 15
+          customDelayMinutes: [0, 15, 30, 45, 60].includes(customDelayMinutes) ? customDelayMinutes : 30
         };
       });
 
