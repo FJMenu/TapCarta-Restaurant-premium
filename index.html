@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.3.2';
+        const APP_VERSION = 'V1.4.3.3';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -5913,6 +5913,92 @@ async function hydrateRestaurantGeneralInfoDraftFromSupabaseOnce() {
 async function openRestaurantGeneralInfoScreen() {
   await hydrateRestaurantGeneralInfoDraftFromSupabaseOnce();
   renderRestaurantGeneralInfoScreen();
+}
+
+function parseRestaurantHoursSettingsValue(value) {
+  if (!value) return null;
+
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? parsed
+        : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+async function hydrateRestaurantHoursDraftFromSupabaseOnce() {
+  if (!activeRestaurantData || typeof activeRestaurantData !== 'object') return false;
+
+  if (activeRestaurantData.restaurantHoursSupabaseHydrated === true) {
+    return true;
+  }
+
+  const restaurantId = getActiveRestaurantSettingsId();
+
+  if (!restaurantId) {
+    console.warn('TapCarta Resto: lecture horaires impossible, restaurant_id manquant.');
+    return false;
+  }
+
+  if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+    console.warn('TapCarta Resto: Supabase non disponible pour lire les horaires.');
+    return false;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('restaurant_settings')
+      .select('hours_json')
+      .eq('restaurant_id', restaurantId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    const hoursFromSupabase = parseRestaurantHoursSettingsValue(data?.hours_json);
+
+    if (hoursFromSupabase) {
+      activeRestaurantData.restaurantHoursDraft = {
+        general: hoursFromSupabase.general || {},
+        booking: {
+          mode: hoursFromSupabase.booking?.mode || 'general',
+          specific: hoursFromSupabase.booking?.specific || {},
+          delayMode: hoursFromSupabase.booking?.delayMode || 'auto',
+          customDelayMinutes: Number(hoursFromSupabase.booking?.customDelayMinutes ?? 30)
+        },
+        ordering: {
+          mode: hoursFromSupabase.ordering?.mode || 'general',
+          specific: hoursFromSupabase.ordering?.specific || {},
+          delayMode: hoursFromSupabase.ordering?.delayMode || 'auto',
+          customDelayMinutes: Number(hoursFromSupabase.ordering?.customDelayMinutes ?? 30)
+        }
+      };
+
+      ensureRestaurantHoursDraft();
+    }
+
+    activeRestaurantData.restaurantHoursSupabaseHydrated = true;
+    return true;
+  } catch (error) {
+    console.warn('TapCarta Resto: erreur lecture horaires depuis Supabase.', error);
+    return false;
+  }
+}
+
+async function openRestaurantHoursScreen() {
+  await hydrateRestaurantHoursDraftFromSupabaseOnce();
+  renderRestaurantHoursScreen();
 }
 
 function normalizeRestaurantModulesForSettings(modules) {
@@ -12313,7 +12399,7 @@ async function saveRestaurantOptionsModal() {
 
     document.getElementById('restaurant-info-close-btn')?.addEventListener('click', closeRestaurantInfoModal);
     document.getElementById('restaurant-info-cancel-btn')?.addEventListener('click', closeRestaurantInfoModal);
-    document.getElementById('restaurant-info-hours-btn')?.addEventListener('click', renderRestaurantHoursScreen);
+    document.getElementById('restaurant-info-hours-btn')?.addEventListener('click', openRestaurantHoursScreen);
     document.getElementById('restaurant-info-general-btn')?.addEventListener('click', openRestaurantGeneralInfoScreen);
 
     renderRestaurantInfoIcons();
