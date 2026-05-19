@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.8';
+        const APP_VERSION = 'V1.4.2.9';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -11277,7 +11277,7 @@ async function saveRestaurantOptionsModal() {
     return result;
   }
 
-  function saveRestaurantHoursDraft() {
+  async function saveRestaurantHoursDraft() {
     const hours = ensureRestaurantHoursDraft();
     if (!hours) return;
 
@@ -11286,6 +11286,36 @@ async function saveRestaurantOptionsModal() {
     const saveButtonIcon = saveButton?.querySelector('i');
     const text = getRestaurantHoursText();
     const originalLabel = saveButtonLabel ? saveButtonLabel.textContent : text.save;
+
+    const applySavingState = () => {
+      if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.classList.remove(
+          'border-gold/45',
+          'bg-gold/15',
+          'hover:bg-gold/20',
+          'text-cream'
+        );
+        saveButton.classList.add(
+          'border-emerald-300',
+          'bg-emerald-500',
+          'text-black'
+        );
+      }
+
+      if (saveButtonIcon) {
+        saveButtonIcon.classList.remove('text-gold', 'text-emerald-300');
+        saveButtonIcon.classList.add('text-black');
+      }
+
+      if (saveButtonLabel) {
+        saveButtonLabel.textContent =
+          currentLang === 'es' ? 'Guardando…' :
+          currentLang === 'en' ? 'Saving…' :
+          currentLang === 'nl' ? 'Opslaan…' :
+          'Enregistrement…';
+      }
+    };
 
     const applySavedState = () => {
       if (saveButton) {
@@ -11343,22 +11373,67 @@ async function saveRestaurantOptionsModal() {
       }
     };
 
-    hours.general = readHoursRowsFromDom('general');
+    try {
+      applySavingState();
 
-    ['booking', 'ordering'].forEach((moduleKey) => {
-      hours[moduleKey] = {
-        ...hours[moduleKey],
-        mode: document.querySelector(`input[name="${moduleKey}-mode"]:checked`)?.value || 'general',
-        specific: readHoursRowsFromDom(`${moduleKey}-specific`),
-        delayMode: document.querySelector(`input[name="${moduleKey}-delay"]:checked`)?.value || 'auto',
-        customDelayMinutes: Number(document.querySelector(`input[name="${moduleKey}-custom-delay"]:checked`)?.value || 15)
+      hours.general = readHoursRowsFromDom('general');
+
+      ['booking', 'ordering'].forEach((moduleKey) => {
+        const mode = document.querySelector(`input[name="${moduleKey}-mode"]:checked`)?.value || 'general';
+        const delayMode = document.querySelector(`input[name="${moduleKey}-delay"]:checked`)?.value || 'auto';
+        const customDelayMinutes = Number(document.querySelector(`input[name="${moduleKey}-custom-delay"]:checked`)?.value || 15);
+
+        hours[moduleKey] = {
+          ...hours[moduleKey],
+          mode: ['general', 'specific'].includes(mode) ? mode : 'general',
+          specific: readHoursRowsFromDom(`${moduleKey}-specific`),
+          delayMode: ['auto', 'custom'].includes(delayMode) ? delayMode : 'auto',
+          customDelayMinutes: [0, 15, 45, 60].includes(customDelayMinutes) ? customDelayMinutes : 15
+        };
+      });
+
+      const hoursPayload = {
+        general: hours.general,
+        booking: {
+          mode: hours.booking.mode,
+          specific: hours.booking.specific,
+          delayMode: hours.booking.delayMode,
+          customDelayMinutes: Number(hours.booking.customDelayMinutes)
+        },
+        ordering: {
+          mode: hours.ordering.mode,
+          specific: hours.ordering.specific,
+          delayMode: hours.ordering.delayMode,
+          customDelayMinutes: Number(hours.ordering.customDelayMinutes)
+        }
       };
-    });
 
-    showTapCartaMessage(text.saved);
-    applySavedState();
+      activeRestaurantData.restaurantHoursDraft = hoursPayload;
 
-    setTimeout(resetButtonState, 1800);
+      const settingsSaved = await saveRestaurantSettingsToSupabase({
+        hours_json: hoursPayload
+      });
+
+      if (!settingsSaved) {
+        throw new Error('restaurant_hours_not_saved');
+      }
+
+      showTapCartaMessage(text.saved);
+      applySavedState();
+
+      setTimeout(resetButtonState, 1800);
+    } catch (error) {
+      console.warn('TapCarta Resto: erreur sauvegarde horaires restaurant.', error);
+
+      showTapCartaMessage(
+        currentLang === 'es' ? 'No se han podido guardar los horarios.' :
+        currentLang === 'en' ? 'The hours could not be saved.' :
+        currentLang === 'nl' ? 'De openingsuren konden niet worden opgeslagen.' :
+        'Les horaires n’ont pas pu être enregistrés.'
+      );
+
+      resetButtonState();
+    }
   }
 
   function getRestaurantGeneralInfoText() {
