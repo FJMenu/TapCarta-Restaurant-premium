@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.2.10';
+        const APP_VERSION = 'V1.4.3.1';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -11108,10 +11108,10 @@ async function saveRestaurantOptionsModal() {
             : 'Service 1';
 
     const service2Label =
-      currentLang === 'es' ? 'Servicio 2'
-        : currentLang === 'en' ? 'Service 2'
-          : currentLang === 'nl' ? 'Service 2'
-            : 'Service 2';
+      currentLang === 'es' ? 'Segundo servicio'
+        : currentLang === 'en' ? 'Second service'
+          : currentLang === 'nl' ? 'Tweede service'
+            : 'Deuxième service';
 
     const optionalLabel =
       currentLang === 'es' ? 'dejar vacío si no se usa'
@@ -11119,61 +11119,100 @@ async function saveRestaurantOptionsModal() {
           : currentLang === 'nl' ? 'leeg laten indien niet gebruikt'
             : 'laisser vide si non utilisé';
 
+    const copyLabel =
+      currentLang === 'es' ? 'Copiar en días vacíos'
+        : currentLang === 'en' ? 'Copy to empty days'
+          : currentLang === 'nl' ? 'Kopiëren naar lege dagen'
+            : 'Copier sur les jours vides';
+
+    const closedHint =
+      currentLang === 'es' ? 'Pulse Abrir para configurar este día.'
+        : currentLang === 'en' ? 'Tap Open to configure this day.'
+          : currentLang === 'nl' ? 'Tik op Open om deze dag in te stellen.'
+            : 'Cliquez sur Ouvrir pour configurer ce jour.';
+
     return Object.entries(labels).map(([dayKey, label]) => {
-      const day = daysSource[dayKey];
+      const day = daysSource?.[dayKey] || { open: false, slots: [] };
       const slot1 = day.slots?.[0] || { from: '', to: '' };
       const slot2 = day.slots?.[1] || { from: '', to: '' };
+      const isOpen = day.open === true;
 
       return `
-        <div class="rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
-          <div class="flex items-center justify-between gap-3 mb-3">
-            <div class="font-bold text-cream">${label}</div>
+        <div
+          class="rounded-2xl border ${isOpen ? 'border-gold/28 bg-black/24' : 'border-white/10 bg-black/14'} px-4 py-4"
+          data-hours-day-card="${fieldPrefix}-${dayKey}"
+        >
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+            <div class="min-w-0">
+              <div class="font-bold text-cream text-base">${label}</div>
+              <div class="text-xs text-cream/55 mt-1" data-hours-closed-hint="${fieldPrefix}-${dayKey}" ${isOpen ? 'hidden' : ''}>
+                ${closedHint}
+              </div>
+            </div>
 
-            <label class="inline-flex items-center gap-2 text-sm font-semibold text-cream/85">
-              <input type="checkbox" data-hours-open="${fieldPrefix}-${dayKey}" ${day.open ? 'checked' : ''} class="accent-gold">
-              <span>${day.open ? text.open : text.closed}</span>
+            <label class="btn-action cursor-pointer select-none inline-flex items-center justify-center gap-2 rounded-2xl border ${isOpen ? 'border-emerald-400/45 bg-emerald-500/14 text-emerald-200' : 'border-white/15 bg-white/5 text-cream/80'} px-4 py-3 text-sm font-black min-w-[138px]">
+              <input type="checkbox" data-hours-open="${fieldPrefix}-${dayKey}" ${isOpen ? 'checked' : ''} class="sr-only">
+              <span data-hours-status="${fieldPrefix}-${dayKey}">${isOpen ? text.open : text.closed}</span>
             </label>
           </div>
 
-          <div class="grid gap-3">
-            <div class="grid md:grid-cols-[100px_1fr_1fr] gap-3 items-center">
-              <div class="text-xs font-bold uppercase tracking-[0.12em] text-gold/80">${service1Label}</div>
+          <div class="${isOpen ? 'grid' : 'hidden'} gap-3" data-hours-fields="${fieldPrefix}-${dayKey}">
+            <div class="rounded-2xl border border-gold/16 bg-black/18 p-3">
+              <div class="text-xs font-black uppercase tracking-[0.12em] text-gold/85 mb-2">${service1Label}</div>
+              <div class="grid grid-cols-2 gap-3">
+                <input
+                  type="time"
+                  data-hours-slot-from="${fieldPrefix}-${dayKey}-0"
+                  value="${slot1.from}"
+                  class="rounded-xl border border-gold/24 bg-black/35 px-3 py-3 text-base text-cream outline-none"
+                >
 
-              <input
-                type="time"
-                data-hours-slot-from="${fieldPrefix}-${dayKey}-0"
-                value="${slot1.from}"
-                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
-              >
-
-              <input
-                type="time"
-                data-hours-slot-to="${fieldPrefix}-${dayKey}-0"
-                value="${slot1.to}"
-                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
-              >
+                <input
+                  type="time"
+                  data-hours-slot-to="${fieldPrefix}-${dayKey}-0"
+                  value="${slot1.to}"
+                  class="rounded-xl border border-gold/24 bg-black/35 px-3 py-3 text-base text-cream outline-none"
+                >
+              </div>
             </div>
 
-            <div class="grid md:grid-cols-[100px_1fr_1fr] gap-3 items-center">
-              <div>
-                <div class="text-xs font-bold uppercase tracking-[0.12em] text-gold/80">${service2Label}</div>
-                <div class="text-[0.72rem] font-semibold text-cream/65">${optionalLabel}</div>
+            <div class="rounded-2xl border border-white/10 bg-black/12 p-3">
+              <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-2 mb-2">
+                <div>
+                  <div class="text-xs font-black uppercase tracking-[0.12em] text-gold/75">${service2Label}</div>
+                  <div class="text-xs font-semibold text-cream/58">${optionalLabel}</div>
+                </div>
+
+                <button
+                  type="button"
+                  data-hours-copy-empty="${fieldPrefix}-${dayKey}"
+                  class="btn-action inline-flex items-center justify-center rounded-xl border border-gold/24 bg-gold/8 px-3 py-2 text-xs font-bold text-gold hover:bg-gold/12"
+                >
+                  ${copyLabel}
+                </button>
               </div>
 
-              <input
-                type="time"
-                data-hours-slot-from="${fieldPrefix}-${dayKey}-1"
-                value="${slot2.from}"
-                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
-              >
+              <div class="grid grid-cols-2 gap-3">
+                <input
+                  type="time"
+                  data-hours-slot-from="${fieldPrefix}-${dayKey}-1"
+                  value="${slot2.from}"
+                  class="rounded-xl border border-gold/20 bg-black/30 px-3 py-3 text-base text-cream outline-none"
+                >
 
-              <input
-                type="time"
-                data-hours-slot-to="${fieldPrefix}-${dayKey}-1"
-                value="${slot2.to}"
-                class="rounded-xl border border-gold/20 bg-black/25 px-3 py-2 text-sm text-cream outline-none"
-              >
+                <input
+                  type="time"
+                  data-hours-slot-to="${fieldPrefix}-${dayKey}-1"
+                  value="${slot2.to}"
+                  class="rounded-xl border border-gold/20 bg-black/30 px-3 py-3 text-base text-cream outline-none"
+                >
+              </div>
             </div>
+
+            <div
+              data-hours-error="${fieldPrefix}-${dayKey}"
+              class="hidden rounded-2xl border border-red-400/45 bg-red-500/12 px-3 py-3 text-sm font-bold text-red-100"
+            ></div>
           </div>
         </div>
       `;
@@ -11284,7 +11323,27 @@ async function saveRestaurantOptionsModal() {
     return (hours * 60) + minutes;
   }
 
-  function getRestaurantHoursConflictMessage() {
+  function getRestaurantHoursErrorText(type) {
+    if (type === 'partial') {
+      return currentLang === 'es'
+        ? 'Complete la hora de inicio y la hora de fin, o deje el servicio vacío.'
+        : currentLang === 'en'
+          ? 'Fill in both start and end time, or leave the service empty.'
+          : currentLang === 'nl'
+            ? 'Vul begin- en einduur in, of laat de service leeg.'
+            : 'Complétez l’heure de début et de fin, ou laissez le service vide.';
+    }
+
+    if (type === 'invalid') {
+      return currentLang === 'es'
+        ? 'La hora de fin debe ser posterior a la hora de inicio.'
+        : currentLang === 'en'
+          ? 'The end time must be after the start time.'
+          : currentLang === 'nl'
+            ? 'Het einduur moet na het beginuur liggen.'
+            : 'L’heure de fin doit être après l’heure de début.';
+    }
+
     return currentLang === 'es'
       ? 'Algunos horarios se solapan. Corrija los tramos antes de guardar.'
       : currentLang === 'en'
@@ -11309,12 +11368,12 @@ async function saveRestaurantOptionsModal() {
       };
     }
 
-    const validSlots = rawSlots.filter((slot) => slot.from && slot.to);
-
     const hasPartialSlot = rawSlots.some((slot) =>
       (slot.from && !slot.to) ||
       (!slot.from && slot.to)
     );
+
+    const validSlots = rawSlots.filter((slot) => slot.from && slot.to);
 
     if (hasPartialSlot) {
       return {
@@ -11345,8 +11404,7 @@ async function saveRestaurantOptionsModal() {
       };
     }
 
-    const sortedSlots = normalizedSlots
-      .sort((a, b) => a.fromMinutes - b.fromMinutes);
+    const sortedSlots = normalizedSlots.sort((a, b) => a.fromMinutes - b.fromMinutes);
 
     const hasConflict = sortedSlots.some((slot, index) => {
       if (index === 0) return false;
@@ -11365,6 +11423,41 @@ async function saveRestaurantOptionsModal() {
       open: true,
       slots: sortedSlots.map(({ from, to }) => ({ from, to }))
     };
+  }
+
+  function clearRestaurantHoursErrors() {
+    document.querySelectorAll('[data-hours-error]').forEach((errorBox) => {
+      errorBox.textContent = '';
+      errorBox.classList.add('hidden');
+    });
+
+    document.querySelectorAll('[data-hours-day-card]').forEach((card) => {
+      card.classList.remove('border-red-400/55', 'bg-red-500/10');
+    });
+  }
+
+  function showRestaurantHoursErrors(errors) {
+    clearRestaurantHoursErrors();
+
+    errors.forEach((error) => {
+      const errorBox = document.querySelector(`[data-hours-error="${error.fieldPrefix}-${error.dayKey}"]`);
+      const card = document.querySelector(`[data-hours-day-card="${error.fieldPrefix}-${error.dayKey}"]`);
+
+      if (errorBox) {
+        errorBox.textContent = getRestaurantHoursErrorText(error.type);
+        errorBox.classList.remove('hidden');
+      }
+
+      if (card) {
+        card.classList.add('border-red-400/55', 'bg-red-500/10');
+      }
+    });
+
+    const firstErrorBox = document.querySelector('[data-hours-error]:not(.hidden)');
+
+    if (firstErrorBox) {
+      firstErrorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   function readHoursRowsFromDom(fieldPrefix) {
@@ -11492,6 +11585,7 @@ async function saveRestaurantOptionsModal() {
 
     try {
       applySavingState();
+      clearRestaurantHoursErrors();
 
       const generalRead = readHoursRowsFromDom('general');
       const bookingSpecificRead = readHoursRowsFromDom('booking-specific');
@@ -11504,7 +11598,8 @@ async function saveRestaurantOptionsModal() {
       ];
 
       if (allErrors.length) {
-        showTapCartaMessage(getRestaurantHoursConflictMessage());
+        showRestaurantHoursErrors(allErrors);
+        showTapCartaMessage(getRestaurantHoursErrorText(allErrors[0].type));
         resetButtonState();
         return;
       }
@@ -12338,10 +12433,106 @@ async function saveRestaurantOptionsModal() {
     document.getElementById('restaurant-info-back-btn')?.addEventListener('click', renderRestaurantInfoHome);
     document.getElementById('restaurant-hours-save-btn')?.addEventListener('click', saveRestaurantHoursDraft);
 
+    function syncRestaurantHoursDayUi(input) {
+      const key = input.getAttribute('data-hours-open');
+      const status = document.querySelector(`[data-hours-status="${key}"]`);
+      const fields = document.querySelector(`[data-hours-fields="${key}"]`);
+      const closedHint = document.querySelector(`[data-hours-closed-hint="${key}"]`);
+      const card = document.querySelector(`[data-hours-day-card="${key}"]`);
+      const label = input.closest('label');
+
+      if (status) status.textContent = input.checked ? text.open : text.closed;
+
+      if (fields) {
+        fields.classList.toggle('hidden', !input.checked);
+        fields.classList.toggle('grid', input.checked);
+      }
+
+      if (closedHint) {
+        closedHint.hidden = input.checked;
+      }
+
+      if (card) {
+        card.classList.toggle('border-gold/28', input.checked);
+        card.classList.toggle('bg-black/24', input.checked);
+        card.classList.toggle('border-white/10', !input.checked);
+        card.classList.toggle('bg-black/14', !input.checked);
+      }
+
+      if (label) {
+        label.classList.toggle('border-emerald-400/45', input.checked);
+        label.classList.toggle('bg-emerald-500/14', input.checked);
+        label.classList.toggle('text-emerald-200', input.checked);
+        label.classList.toggle('border-white/15', !input.checked);
+        label.classList.toggle('bg-white/5', !input.checked);
+        label.classList.toggle('text-cream/80', !input.checked);
+      }
+    }
+
+    function copyRestaurantHoursToEmptyDays(sourceKey) {
+      const [fieldPrefix, dayKey] = sourceKey.split(/-(?=[^-]+$)/);
+      const sourceOpen = document.querySelector(`[data-hours-open="${fieldPrefix}-${dayKey}"]`);
+      const sourceFrom0 = document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${dayKey}-0"]`)?.value || '';
+      const sourceTo0 = document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${dayKey}-0"]`)?.value || '';
+      const sourceFrom1 = document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${dayKey}-1"]`)?.value || '';
+      const sourceTo1 = document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${dayKey}-1"]`)?.value || '';
+
+      if (!sourceOpen?.checked || (!sourceFrom0 && !sourceTo0 && !sourceFrom1 && !sourceTo1)) {
+        showTapCartaMessage(
+          currentLang === 'es' ? 'Configure primero este día antes de copiarlo.' :
+          currentLang === 'en' ? 'Configure this day before copying it.' :
+          currentLang === 'nl' ? 'Stel deze dag eerst in voordat u kopieert.' :
+          'Configurez d’abord ce jour avant de le copier.'
+        );
+        return;
+      }
+
+      Object.keys(getRestaurantDayLabels()).forEach((targetDayKey) => {
+        if (targetDayKey === dayKey) return;
+
+        const targetValues = [0, 1].flatMap((slotIndex) => [
+          document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${targetDayKey}-${slotIndex}"]`)?.value || '',
+          document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${targetDayKey}-${slotIndex}"]`)?.value || ''
+        ]);
+
+        const targetHasHours = targetValues.some(Boolean);
+
+        if (targetHasHours) return;
+
+        const targetOpen = document.querySelector(`[data-hours-open="${fieldPrefix}-${targetDayKey}"]`);
+        const targetFrom0 = document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${targetDayKey}-0"]`);
+        const targetTo0 = document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${targetDayKey}-0"]`);
+        const targetFrom1 = document.querySelector(`[data-hours-slot-from="${fieldPrefix}-${targetDayKey}-1"]`);
+        const targetTo1 = document.querySelector(`[data-hours-slot-to="${fieldPrefix}-${targetDayKey}-1"]`);
+
+        if (targetOpen) {
+          targetOpen.checked = true;
+          syncRestaurantHoursDayUi(targetOpen);
+        }
+
+        if (targetFrom0) targetFrom0.value = sourceFrom0;
+        if (targetTo0) targetTo0.value = sourceTo0;
+        if (targetFrom1) targetFrom1.value = sourceFrom1;
+        if (targetTo1) targetTo1.value = sourceTo1;
+      });
+
+      showTapCartaMessage(
+        currentLang === 'es' ? 'Horarios copiados en los días vacíos.' :
+        currentLang === 'en' ? 'Hours copied to empty days.' :
+        currentLang === 'nl' ? 'Uren gekopieerd naar lege dagen.' :
+        'Horaires copiés sur les jours vides.'
+      );
+    }
+
     document.querySelectorAll('[data-hours-open]').forEach((input) => {
-      input.addEventListener('change', () => {
-        const label = input.closest('label')?.querySelector('span');
-        if (label) label.textContent = input.checked ? text.open : text.closed;
+      input.addEventListener('change', () => syncRestaurantHoursDayUi(input));
+      syncRestaurantHoursDayUi(input);
+    });
+
+    document.querySelectorAll('[data-hours-copy-empty]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const sourceKey = button.getAttribute('data-hours-copy-empty');
+        if (sourceKey) copyRestaurantHoursToEmptyDays(sourceKey);
       });
     });
 
