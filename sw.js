@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tapcarta-resto-cache-v1-2-9';
+const CACHE_NAME = 'tapcarta-resto-cache-v1-4-3-4';
 
 const APP_SHELL = [
   './',
