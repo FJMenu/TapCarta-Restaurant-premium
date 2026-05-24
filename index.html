@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.4.3.4';
+        const APP_VERSION = 'V1.5.1.1';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -1614,72 +1614,111 @@ function isUuid(value) {
     && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
-async function resolveSupabaseRestaurantId(activeRestaurant, restaurantData) {
-  const directCandidates = [
-    restaurantData?.supabaseRestaurantId,
-    restaurantData?.restaurantId,
-    restaurantData?.identity?.supabaseRestaurantId,
-    restaurantData?.identity?.restaurantId,
-    activeRestaurant?.supabaseRestaurantId,
-    activeRestaurant?.restaurantId
-  ].filter(Boolean);
+function getTapCartaRestoUrlCredentials() {
+  const params = new URLSearchParams(window.location.search);
 
-  const directUuid = directCandidates.find(isUuid);
-  if (directUuid) return directUuid;
+  const restaurantId = (
+    params.get('restaurant_id') ||
+    params.get('restaurantId') ||
+    params.get('rid') ||
+    ''
+  ).trim();
 
-  const slugCandidates = [
-    restaurantData?.slug,
-    restaurantData?.identity?.slug,
-    activeRestaurant?.slug,
-    activeRestaurant?.id,
-    restaurantData?.identity?.id
-  ]
-    .filter(Boolean)
-    .map((value) => String(value).trim())
-    .filter(Boolean);
+  const accessToken = (
+    params.get('token') ||
+    params.get('access_token') ||
+    params.get('t') ||
+    ''
+  ).trim();
 
-  for (const slug of slugCandidates) {
-    const { data, error } = await supabaseClient
-      .from('restaurants')
-      .select('id')
-      .eq('slug', slug)
-      .maybeSingle();
+  return {
+    restaurantId,
+    accessToken
+  };
+}
 
-    if (!error && data?.id) {
-      return data.id;
-    }
+function showTapCartaRestoAccessBlocked(message) {
+  const wrapper = document.getElementById('app-wrapper') || document.body;
+
+  wrapper.innerHTML = `
+    <div class="min-h-screen flex items-center justify-center bg-dark px-5 py-10 text-cream">
+      <div class="w-full max-w-xl rounded-[28px] border border-gold/25 bg-darkCard/95 p-7 text-center shadow-2xl">
+        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gold/10">
+          <i data-lucide="shield-alert" class="h-7 w-7 text-gold"></i>
+        </div>
+
+        <h1 class="font-display text-2xl text-gold">
+          Accès Resto non valide
+        </h1>
+
+        <p class="mt-4 text-sm leading-relaxed text-cream/75">
+          ${message || 'Ce lien Resto est absent, invalide ou révoqué.'}
+        </p>
+
+        <p class="mt-4 text-sm leading-relaxed text-cream/60">
+          Contactez TapCarta pour recevoir un nouveau lien sécurisé.
+        </p>
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+}
+
+async function validateTapCartaRestoAccess() {
+  const { restaurantId, accessToken } = getTapCartaRestoUrlCredentials();
+
+  if (!restaurantId || !isUuid(restaurantId) || !accessToken) {
+    throw new Error('Ce lien Resto est incomplet. Il doit contenir un identifiant restaurant et un token sécurisé.');
   }
 
-  const nameCandidates = [
-    restaurantData?.identity?.name,
-    restaurantData?.name,
-    activeRestaurant?.name
-  ]
-    .filter(Boolean)
-    .map((value) => String(value).trim())
-    .filter(Boolean);
+  const { data: accessRow, error: accessError } = await supabaseClient
+    .from('restaurant_resto_access')
+    .select('id, restaurant_id, access_token, status, label, created_at, revoked_at')
+    .eq('restaurant_id', restaurantId)
+    .eq('access_token', accessToken)
+    .eq('status', 'active')
+    .maybeSingle();
 
-  for (const name of nameCandidates) {
-    const { data, error } = await supabaseClient
-      .from('restaurants')
-      .select('id')
-      .ilike('name', name)
-      .maybeSingle();
-
-    if (!error && data?.id) {
-      return data.id;
-    }
+  if (accessError) {
+    console.error('TapCarta Resto: erreur validation accès Resto.', accessError);
+    throw new Error('Impossible de vérifier cet accès Resto.');
   }
 
-  console.warn('TapCarta Resto: aucun UUID restaurant Supabase trouvé pour ce restaurant actif.', {
-    activeRestaurant,
-    restaurantIdentity: restaurantData?.identity || null
-  });
+  if (!accessRow?.id) {
+    throw new Error('Ce lien Resto est invalide ou a été révoqué.');
+  }
 
-  return '';
+  const { data: restaurantRow, error: restaurantError } = await supabaseClient
+    .from('restaurants')
+    .select('id, name, slug, status, pack_code, public_url, resto_url')
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (restaurantError) {
+    console.error('TapCarta Resto: erreur lecture restaurant.', restaurantError);
+    throw new Error('Impossible de charger ce restaurant.');
+  }
+
+  if (!restaurantRow?.id) {
+    throw new Error('Restaurant introuvable.');
+  }
+
+  return {
+    restaurantId,
+    accessToken,
+    accessRow,
+    restaurantRow
+  };
 }
 
 async function loadActiveRestaurantData() {
+  const restoAccess = await validateTapCartaRestoAccess();
+  const resolvedSupabaseRestaurantId = restoAccess.restaurantId;
+  const supabaseRestaurant = restoAccess.restaurantRow;
+
   const restaurantsIndex = await fetchJsonFile('./restaurants/index.json');
 
   const restaurantsList = Array.isArray(restaurantsIndex)
@@ -1688,10 +1727,14 @@ async function loadActiveRestaurantData() {
       ? restaurantsIndex.restaurants
       : [];
 
-  const activeRestaurant = restaurantsList.find(item => item.status === 'active');
+  const activeRestaurant =
+    restaurantsList.find(item => item.restaurantId === resolvedSupabaseRestaurantId) ||
+    restaurantsList.find(item => item.supabaseRestaurantId === resolvedSupabaseRestaurantId) ||
+    restaurantsList.find(item => item.slug && supabaseRestaurant.slug && item.slug === supabaseRestaurant.slug) ||
+    restaurantsList.find(item => item.status === 'active');
 
   if (!activeRestaurant || !activeRestaurant.id) {
-    throw new Error('Aucun établissement actif trouvé.');
+    throw new Error('Aucun fichier de configuration Resto trouvé pour cet établissement.');
   }
 
   const restaurantFilePath = activeRestaurant.file
@@ -1700,17 +1743,32 @@ async function loadActiveRestaurantData() {
 
   const restaurantData = await fetchJsonFile(restaurantFilePath);
 
-  const resolvedSupabaseRestaurantId = await resolveSupabaseRestaurantId(activeRestaurant, restaurantData);
-
   if (!restaurantData.identity || typeof restaurantData.identity !== 'object') {
     restaurantData.identity = {};
   }
 
   restaurantData.identity.localId = restaurantData.identity.id || activeRestaurant.id || '';
-  restaurantData.identity.id = resolvedSupabaseRestaurantId || restaurantData.identity.id || activeRestaurant.id || '';
-  restaurantData.supabaseRestaurantId = resolvedSupabaseRestaurantId || '';
+  restaurantData.identity.id = resolvedSupabaseRestaurantId;
+  restaurantData.identity.restaurantId = resolvedSupabaseRestaurantId;
+  restaurantData.identity.supabaseRestaurantId = resolvedSupabaseRestaurantId;
+  restaurantData.identity.name =
+    supabaseRestaurant.name ||
+    restaurantData.identity.name ||
+    restaurantData.name ||
+    activeRestaurant.name ||
+    '';
+  restaurantData.identity.slug =
+    supabaseRestaurant.slug ||
+    restaurantData.identity.slug ||
+    activeRestaurant.slug ||
+    '';
+
+  restaurantData.supabaseRestaurantId = resolvedSupabaseRestaurantId;
+  restaurantData.restaurantId = resolvedSupabaseRestaurantId;
+  restaurantData.restoAccessToken = restoAccess.accessToken;
 
   siteConfig.restaurantId = resolvedSupabaseRestaurantId || '';
+  siteConfig.restoAccessToken = restoAccess.accessToken || '';
 
   if (resolvedSupabaseRestaurantId) {
 
@@ -14662,7 +14720,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (reloadingForFreshVersion) return;
 
   await registerFreshServiceWorker();
-  await loadActiveRestaurantData();
+
+  try {
+    await loadActiveRestaurantData();
+  } catch (error) {
+    console.error('TapCarta Resto: accès bloqué.', error);
+    showTapCartaRestoAccessBlocked(error?.message || 'Accès Resto non valide ou révoqué.');
+    return;
+  }
 
   console.log('Restaurant actif chargé :', activeRestaurantData);
 
