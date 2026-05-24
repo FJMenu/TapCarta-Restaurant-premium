@@ -6,7 +6,7 @@
       <title>TapCarta Resto</title>
       
         <script>
-        const APP_VERSION = 'V1.5.1.1';
+        const APP_VERSION = 'V1.5.1.2';
 
     function getBasePath() {
       const path = window.location.pathname;
@@ -1637,34 +1637,101 @@ function getTapCartaRestoUrlCredentials() {
   };
 }
 
+function getTapCartaRestoAccessLanguage() {
+  const params = new URLSearchParams(window.location.search);
+  const urlLang = (params.get('lang') || '').trim().toLowerCase();
+
+  if (['fr', 'es', 'en', 'nl'].includes(urlLang)) {
+    return urlLang;
+  }
+
+  const storedLang = (localStorage.getItem('tapcarta_lang') || '').trim().toLowerCase();
+
+  if (['fr', 'es', 'en', 'nl'].includes(storedLang)) {
+    return storedLang;
+  }
+
+  const browserLang = (navigator.language || navigator.userLanguage || 'fr')
+    .slice(0, 2)
+    .toLowerCase();
+
+  return ['fr', 'es', 'en', 'nl'].includes(browserLang) ? browserLang : 'fr';
+}
+
+function getTapCartaRestoBlockedTexts(lang) {
+  const texts = {
+    fr: {
+      title: 'Accès Resto non valide',
+      defaultMessage: 'Ce lien Resto est absent, invalide ou révoqué.',
+      contact: 'Contactez TapCarta pour recevoir un nouveau lien sécurisé.'
+    },
+    es: {
+      title: 'Acceso Resto no válido',
+      defaultMessage: 'Este enlace Resto falta, no es válido o ha sido revocado.',
+      contact: 'Contacte con TapCarta para recibir un nuevo enlace seguro.'
+    },
+    en: {
+      title: 'Invalid Resto access',
+      defaultMessage: 'This Resto link is missing, invalid or has been revoked.',
+      contact: 'Contact TapCarta to receive a new secure link.'
+    },
+    nl: {
+      title: 'Ongeldige Resto-toegang',
+      defaultMessage: 'Deze Resto-link ontbreekt, is ongeldig of werd ingetrokken.',
+      contact: 'Neem contact op met TapCarta om een nieuwe beveiligde link te ontvangen.'
+    }
+  };
+
+  return texts[lang] || texts.fr;
+}
+
 function showTapCartaRestoAccessBlocked(message) {
   const wrapper = document.getElementById('app-wrapper') || document.body;
+  let selectedLang = getTapCartaRestoAccessLanguage();
 
-  wrapper.innerHTML = `
-    <div class="min-h-screen flex items-center justify-center bg-dark px-5 py-10 text-cream">
-      <div class="w-full max-w-xl rounded-[28px] border border-gold/25 bg-darkCard/95 p-7 text-center shadow-2xl">
-        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gold/10">
-          <i data-lucide="shield-alert" class="h-7 w-7 text-gold"></i>
+  const renderBlockedAccess = () => {
+    const text = getTapCartaRestoBlockedTexts(selectedLang);
+
+    wrapper.innerHTML = `
+      <div class="min-h-screen flex items-center justify-center bg-dark px-5 py-10 text-cream">
+        <div class="w-full max-w-xl rounded-[28px] border border-gold/25 bg-darkCard/95 p-7 text-center shadow-2xl">
+          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/30 bg-gold/10">
+            <i data-lucide="shield-alert" class="h-7 w-7 text-gold"></i>
+          </div>
+
+          <h1 class="font-display text-2xl text-gold">
+            ${text.title}
+          </h1>
+
+          <p class="mt-4 text-sm leading-relaxed text-cream/75">
+            ${message || text.defaultMessage}
+          </p>
+
+          <p class="mt-4 text-sm leading-relaxed text-cream/60">
+            ${text.contact}
+          </p>
         </div>
-
-        <h1 class="font-display text-2xl text-gold">
-          Accès Resto non valide
-        </h1>
-
-        <p class="mt-4 text-sm leading-relaxed text-cream/75">
-          ${message || 'Ce lien Resto est absent, invalide ou révoqué.'}
-        </p>
-
-        <p class="mt-4 text-sm leading-relaxed text-cream/60">
-          Contactez TapCarta pour recevoir un nouveau lien sécurisé.
-        </p>
       </div>
-    </div>
-  `;
+    `;
 
-  if (window.lucide) {
-    lucide.createIcons();
-  }
+    document.querySelectorAll('.lang-btn').forEach((button) => {
+      const buttonLang = button.dataset.lang;
+
+      button.classList.toggle('active', buttonLang === selectedLang);
+
+      button.onclick = () => {
+        selectedLang = buttonLang;
+        localStorage.setItem('tapcarta_lang', selectedLang);
+        renderBlockedAccess();
+      };
+    });
+
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  };
+
+  renderBlockedAccess();
 }
 
 async function validateTapCartaRestoAccess() {
